@@ -15,6 +15,7 @@ export const ogLocale: Record<Lang, string> = { pt: 'pt_BR', en: 'en_US' };
 const pt = {
 
   'nav.skip': 'Pular para o conteúdo',
+  'nav.about': 'Sobre mim',
   'nav.projects': 'Projetos',
   'nav.skills': 'Habilidades',
   'nav.experience': 'Experiência',
@@ -38,7 +39,11 @@ const pt = {
   'hero.card': 'Resumo do perfil no formato de resposta de API',
   'hero.emailTitle': 'Ir para o formulário de contato',
 
-  'projects.eyebrow': '01 · projetos',
+  'about.eyebrow': '01 · sobre mim',
+  'about.title': 'Um pouco sobre mim',
+  'about.facts': 'Em resumo',
+
+  'projects.eyebrow': '02 · projetos',
   'projects.title': 'Projetos que você pode testar agora',
   'projects.intro': 'Cada projeto tem um console de API. Clique em <strong>Testar a API</strong> e envie as requisições sem sair desta página.',
   'projects.introShort': 'Toque em <strong>Testar a API</strong> e envie as requisições sem sair da página.',
@@ -89,15 +94,15 @@ const pt = {
   'console.tokenPending': '(use “Gerar token” primeiro)',
   'console.tokenFilled': '(preenchido)',
 
-  'skills.eyebrow': '02 · habilidades',
+  'skills.eyebrow': '03 · habilidades',
   'skills.title': 'O que eu uso no dia a dia',
-  'experience.eyebrow': '03 · experiência',
+  'experience.eyebrow': '04 · experiência',
   'experience.title': 'Onde trabalhei e o que mudou',
   'education.title': 'formação',
   'languages.title': 'idiomas',
-  'articles.eyebrow': '04 · artigos',
+  'articles.eyebrow': '05 · artigos',
   'articles.title': 'Escrevendo sobre',
-  'contact.eyebrow': '05 · contato',
+  'contact.eyebrow': '06 · contato',
   'contact.title': 'Vamos conversar sobre a sua vaga',
   'contact.text': 'Conte um pouco sobre a vaga ou o projeto. A mensagem chega direto no meu e-mail e eu respondo por lá.',
   'contact.hiring': 'Modelos de contratação',
@@ -167,6 +172,7 @@ export type UIKey = BaseKey | PersonalKey;
 const en: Record<BaseKey, string> = {
 
   'nav.skip': 'Skip to content',
+  'nav.about': 'About',
   'nav.projects': 'Projects',
   'nav.skills': 'Skills',
   'nav.experience': 'Experience',
@@ -190,7 +196,11 @@ const en: Record<BaseKey, string> = {
   'hero.card': 'Profile summary formatted as an API response',
   'hero.emailTitle': 'Go to the contact form',
 
-  'projects.eyebrow': '01 · projects',
+  'about.eyebrow': '01 · about me',
+  'about.title': 'A bit about me',
+  'about.facts': 'At a glance',
+
+  'projects.eyebrow': '02 · projects',
   'projects.title': 'Projects you can test right now',
   'projects.intro': 'Every project has an API console. Click <strong>Try the API</strong> and send the requests without leaving this page.',
   'projects.introShort': 'Tap <strong>Try the API</strong> and send the requests without leaving the page.',
@@ -241,15 +251,15 @@ const en: Record<BaseKey, string> = {
   'console.tokenPending': '(run “Get token” first)',
   'console.tokenFilled': '(filled in)',
 
-  'skills.eyebrow': '02 · skills',
+  'skills.eyebrow': '03 · skills',
   'skills.title': 'What I use day to day',
-  'experience.eyebrow': '03 · experience',
+  'experience.eyebrow': '04 · experience',
   'experience.title': 'Where I worked and what changed',
   'education.title': 'education',
   'languages.title': 'languages',
-  'articles.eyebrow': '04 · articles',
+  'articles.eyebrow': '05 · articles',
   'articles.title': 'Writing about',
-  'contact.eyebrow': '05 · contact',
+  'contact.eyebrow': '06 · contact',
   'contact.title': "Let's talk about your opening",
   'contact.text': 'Tell me a bit about the role or the project. The message goes straight to my inbox and I reply from there.',
   'contact.hiring': 'Contract types',

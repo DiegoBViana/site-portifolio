@@ -277,13 +277,17 @@ test.describe('home layout (design A)', () => {
   test('sections render from content in order with numbered eyebrows', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('.eyebrow')).toHaveText([
-      '01 · projetos',
-      '02 · habilidades',
-      '03 · experiência',
+      '01 · sobre mim',
+      '02 · projetos',
+      '03 · habilidades',
+      '04 · experiência',
       'formação',
       'idiomas',
-      '05 · contato',
+      '06 · contato',
     ]);
+    await expect(page.locator('section').nth(1)).toHaveAttribute('id', 'sobre');
+    await expect(page.locator('#sobre .about__text p')).toHaveCount(3);
+    await expect(page.locator('.about-facts__item')).toHaveCount(2);
     await expect(page.locator('.project-card')).toHaveCount(2);
     await expect(page.locator('.project-card').first()).toContainText('API · 01');
     await expect(page.locator('.project-card').first()).toContainText('demo online');

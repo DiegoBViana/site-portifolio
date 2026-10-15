@@ -25,6 +25,7 @@ const canonical = new URL(alternates[lang], site).href;
 const ogImage = new URL(profile.ogImage, site).href;
 const other = otherLang(lang);
 const navItems = [
+  ['#sobre', t('nav.about')],
   ['#projetos', t('nav.projects')],
   ['#habilidades', t('nav.skills')],
   ['#experiencia', t('nav.experience')],
