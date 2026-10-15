@@ -44,7 +44,7 @@ Para começar o seu: copie `data/example/` para `data/personal/` e troque o cont
 
 | Arquivo em `data/<pasta>/` | Conteúdo |
 | --- | --- |
-| `site.config.ts` | Nome, apelido (`handle`), e-mail, GitHub, LinkedIn, CV, cartão `GET /<handle>` sobre a foto, modelos de contratação, formação, idiomas |
+| `site.config.ts` | Nome, apelido (`handle`), e-mail, GitHub, LinkedIn, CV, cartão `GET /<handle>` sobre a foto, textos da seção "Sobre mim" (`about`), modelos de contratação, formação, idiomas |
 | `copy.ts` | Textos pessoais da interface: título da página, descrição, cargo, chamada do topo, introduções de habilidades e experiência |
 | `assets/foto.png` | Foto do topo (otimizada no build: WebP 480/800 + JPEG) |
 | `public/` | `cv.pdf`, `og.png` (1200×630, imagem de compartilhamento), `favicon.svg`, `robots.txt`. São copiados para `public/` no build |

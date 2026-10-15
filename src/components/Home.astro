@@ -4,7 +4,7 @@ import { Picture } from 'astro:assets';
 import { useTranslations, l, type Lang } from '../i18n/ui';
 import { buildProjectHash } from '../lib/project-hash';
 import { highlightJson } from '../lib/api-console';
-import { profile, heroCard, hiring, education, spokenLanguages, type HeroCardRow } from '@data/site.config';
+import { profile, about, heroCard, hiring, education, spokenLanguages, type HeroCardRow } from '@data/site.config';
 import foto from '@data/assets/foto.png';
 import Icon from './Icon.astro';
 import SkillIcon from './SkillIcon.astro';
@@ -97,6 +97,30 @@ const [firstName, ...otherNames] = profile.name.split(' ');
         {heroCard[lang].map((row) => <code class:list={['hero-photo__line', { 'hide-phone': !row.phone }]} set:html={cardLine(row)} />)}
       </figcaption>
     </figure>
+  </div>
+</section>
+
+<section class="section section--rule" id="sobre" aria-labelledby="about-title">
+  <div class="container section__inner">
+    <header class="section__head">
+      <p class="eyebrow">{t('about.eyebrow')}</p>
+      <h2 id="about-title">{t('about.title')}</h2>
+    </header>
+    <div class="about">
+      <div class="about__text">
+        {about[lang].paragraphs.map((p) => <p>{p}</p>)}
+      </div>
+      <dl class="about-facts" aria-label={t('about.facts')}>
+        {
+          about[lang].facts.map((f) => (
+            <div class="about-facts__item">
+              <dt>{f.label}</dt>
+              <dd>{f.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
   </div>
 </section>
 

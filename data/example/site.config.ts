@@ -29,6 +29,32 @@ export const profile = {
 };
 
 /** Contract types shown as chips in the contact section. */
+/** "Sobre mim" section, before the projects: a few paragraphs and short facts. Fictitious example. */
+export const about: Record<Lang, { paragraphs: string[]; facts: { value: string; label: string }[] }> = {
+  pt: {
+    paragraphs: [
+      'Sou desenvolvedora backend e trabalho com C#/.NET desde 2018, construindo APIs de pagamentos e integrações.',
+      'Gosto de sistemas previsíveis: idempotência, testes de integração e métricas desde o primeiro dia.',
+      'Texto fictício de exemplo: troque pelo seu em data/personal/site.config.ts.',
+    ],
+    facts: [
+      { value: 'desde 2018', label: 'desenvolvendo software' },
+      { value: 'C# · .NET', label: 'stack principal' },
+    ],
+  },
+  en: {
+    paragraphs: [
+      "I'm a backend developer working with C#/.NET since 2018, building payment APIs and integrations.",
+      'I like predictable systems: idempotency, integration tests and metrics from day one.',
+      'Fictitious example text: replace it with yours in data/personal/site.config.ts.',
+    ],
+    facts: [
+      { value: 'since 2018', label: 'building software' },
+      { value: 'C# · .NET', label: 'main stack' },
+    ],
+  },
+};
+
 export const hiring: Record<Lang, string[]> = {
   pt: ['CLT', 'PJ', 'Remoto'],
   en: ['CLT', 'PJ', 'Remote'],
