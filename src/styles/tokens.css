@@ -1,0 +1,150 @@
+/*
+ * DESIGN TOKENS: Direction A · API Docs (source: design-canvas/tokens-A.json v1.0.0).
+ * The only file a visual change needs to touch; components reference these properties only.
+ *
+ * Every colour is light-dark(<light>, <dark>). The active theme comes from `color-scheme`:
+ *   - no data-theme on <html>: follows the OS (prefers-color-scheme)
+ *   - html[data-theme="light" | "dark"]: the visitor's saved choice (set before first paint)
+ * Rules from the designer:
+ *   - --color-accent is a FILL (buttons). Text on it uses --color-on-accent.
+ *     Never use --color-accent as text; use --color-accent-text.
+ *   - --color-success / --color-warning are fills (dots, badges) with --color-on-*,
+ *     and --color-success-text / --color-warning are their text colours.
+ *   - --color-border-strong is for interactive control edges (meets 3:1).
+ */
+:root {
+  color-scheme: light dark;
+
+  /* Surfaces */
+  --color-bg: light-dark(#f6f5f9, #0d0c11);
+  --color-surface: light-dark(#ffffff, #15131c);
+  --color-surface-2: light-dark(#eeecf4, #110f17); /* alternate section band */
+  --color-surface-3: light-dark(#eae7f2, #221f2d); /* chips, method badge */
+  --color-panel: light-dark(#ffffff, #121018); /* project panel / sheet */
+  --color-accent-subtle: light-dark(#eee9fd, #1c1730); /* selected request, primary layer */
+
+  /* Lines */
+  --color-border: light-dark(#ddd9e7, #2b2738);
+  --color-border-mid: light-dark(#c9c4d6, #3a3448);
+  --color-border-strong: light-dark(#7a7390, #706886);
+  --color-accent-border: light-dark(#4a26c4, #5b4a9e);
+
+  /* Text */
+  --color-text: light-dark(#15131c, #eeebf5);
+  --color-text-secondary: light-dark(#3f3a4e, #c9c3d8);
+  --color-text-muted: light-dark(#5b5570, #a9a3ba);
+  --color-text-code: light-dark(#2c2838, #d6d1e3);
+
+  /* Accent */
+  --color-accent: #512bd4;
+  --color-accent-hover: #4a26c4;
+  --color-on-accent: #ffffff;
+  --color-accent-text: light-dark(#4a26c4, #b9a8ff);
+  --color-accent-text-hover: light-dark(#2e1585, #d9cfff);
+  --color-focus: light-dark(#4a26c4, #b9a8ff);
+
+  /* Status */
+  --color-success: light-dark(#157a3e, #7fd9a0);
+  --color-success-text: light-dark(#136b36, #a9e8c0);
+  --color-on-success: light-dark(#ffffff, #0d0c11);
+  --color-warning: light-dark(#8a4b00, #f0c48a);
+  --color-on-warning: light-dark(#ffffff, #0d0c11);
+  --color-warning-subtle: light-dark(#fff3e2, #261e12);
+  --color-warning-border: light-dark(#e9c48c, #5a4520);
+  --color-warning-on-subtle: light-dark(#6b3a00, #f3d3a6);
+  --color-info: light-dark(#0b5cad, #8ec5ff);
+
+  /* Effects */
+  --color-scrim: light-dark(rgb(21 19 28 / 0.42), rgb(5 4 9 / 0.74));
+  --color-glow: light-dark(rgb(81 43 212 / 0.18), rgb(81 43 212 / 0.55));
+  --color-panel-shadow: light-dark(rgb(21 19 28 / 0.18), rgb(0 0 0 / 0.6));
+  /* A2 imagery (tokens-A.json a2Imagery): bottom shade over the hero photo */
+  --color-photo-shade: light-dark(rgb(21 19 28 / 0.35), rgb(13 12 17 / 0.6));
+
+  /* Code & JSON */
+  --color-code-bg: light-dark(#ffffff, #0d0c11);
+  --code-key: light-dark(#4a26c4, #b9a8ff);
+  --code-string: light-dark(#136b36, #a9e8c0);
+  --code-number: light-dark(#8a4b00, #f0c48a);
+  --code-bool: light-dark(#8a4b00, #f0c48a);
+  --code-punct: light-dark(#5b5570, #a9a3ba);
+  --code-plain: light-dark(#2c2838, #d6d1e3);
+  --code-comment: light-dark(#5b5570, #a9a3ba);
+  --code-keyword: light-dark(#8a4b00, #f0c48a);
+
+  /* Shiki css-variables theme (see src/lib/shiki-theme.ts) */
+  --shiki-foreground: var(--code-plain);
+  --shiki-background: var(--color-code-bg);
+  --shiki-token-comment: var(--code-comment);
+  --shiki-token-constant: var(--code-number);
+  --shiki-token-function: var(--code-key);
+  --shiki-token-keyword: var(--code-keyword);
+  --shiki-token-parameter: var(--code-plain);
+  --shiki-token-punctuation: var(--code-punct);
+  --shiki-token-string: var(--code-string);
+  --shiki-token-string-expression: var(--code-string);
+  --shiki-token-link: var(--color-accent-text);
+
+  /* Typography */
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  /* A2 · V1 Display: Bricolage Grotesque 800, opsz 96 for the name and section headings */
+  --font-display: 'Bricolage Grotesque', 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  /* 84px on phones → 156px on desktop (artboards 390 / 1440) */
+  --text-display: clamp(84px, 6.86vw + 57.3px, 156px);
+  --text-role: clamp(18px, 2.4vw, 24px);
+  --text-h2: clamp(32px, 4.4vw, 48px);
+  --text-h3: 22px;
+  --text-h3-sm: 19px;
+  --text-lead: 19px;
+  --text-body-lg: 17px;
+  --text-body: 16px;
+  --text-body-sm: 15px;
+  --text-sm: 14px;
+  --text-label: 13px;
+  --text-xs: 12px;
+  --text-code: 13px;
+  --leading-tight: 1.15;
+  --leading-normal: 1.6;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 48px;
+  --gutter: clamp(16px, 4vw, 48px);
+  --section-y: clamp(56px, 7vw, 88px);
+  --content-width: 1200px;
+  --panel-width: min(800px, 100%);
+
+  /* Shape & size */
+  --radius-chip: 6px;
+  --radius-control: 10px;
+  --radius-card: 14px;
+  --radius-inner: 12px;
+  --radius-pill: 999px;
+  --touch: 44px;
+
+  /* Motion (zeroed under prefers-reduced-motion) */
+  --duration-fast: 150ms;
+  --duration-normal: 220ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-normal: 0ms;
+  }
+}

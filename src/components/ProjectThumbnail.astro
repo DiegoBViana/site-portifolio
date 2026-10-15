@@ -1,0 +1,30 @@
+---
+/**
+ * A project's card diagram (design A2). The SVG lives in data/<pasta>/content/projects/thumbnails/ and is
+ * inlined so its .th-* classes pick up the theme tokens (see home.css). Labels written as
+ * `{{texto|text}}` are resolved to the page language. Marker ids must be unique per file.
+ */
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  file: string;
+  alt: string;
+  lang: Lang;
+}
+const { file, alt, lang } = Astro.props;
+
+const files = import.meta.glob<string>('@data/content/projects/thumbnails/*.svg', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
+const raw = Object.entries(files).find(([path]) => path.endsWith(`/thumbnails/${file}`))?.[1];
+if (!raw) throw new Error(`Project thumbnail not found: content/projects/thumbnails/${file}`);
+
+const escapeAttr = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+const svg = raw
+  .replace(/\{\{([^|}]*)\|([^}]*)\}\}/g, (_, pt: string, en: string) => (lang === 'pt' ? pt : en))
+  .replace('<svg ', `<svg role="img" aria-label="${escapeAttr(alt)}" focusable="false" `);
+---
+
+<div class="thumb" set:html={svg} />

@@ -1,0 +1,307 @@
+---
+import { getCollection } from 'astro:content';
+import { Picture } from 'astro:assets';
+import { useTranslations, l, type Lang } from '../i18n/ui';
+import { buildProjectHash } from '../lib/project-hash';
+import { highlightJson } from '../lib/api-console';
+import { profile, heroCard, hiring, education, spokenLanguages, type HeroCardRow } from '@data/site.config';
+import foto from '@data/assets/foto.png';
+import Icon from './Icon.astro';
+import SkillIcon from './SkillIcon.astro';
+import ProjectThumbnail from './ProjectThumbnail.astro';
+import ContactForm from './ContactForm.astro';
+import ProjectPanel from './ProjectPanel.astro';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const projects = (await getCollection('projects', ({ data }) => !data.draft && data.featured)).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+const skills = (await getCollection('skills')).sort((a, b) => a.data.order - b.data.order);
+const experience = (await getCollection('experience')).sort((a, b) => a.data.order - b.data.order);
+const articles = (await getCollection('articles', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+);
+const dateFmt = new Intl.DateTimeFormat(lang === 'pt' ? 'pt-BR' : 'en', { year: 'numeric', month: 'short' });
+
+/** One line of the photo card: `"k": v, "k2": v2` with the JSON colours. */
+const cardLine = (row: HeroCardRow) =>
+  highlightJson(row.fields.map(([k, v]) => `${JSON.stringify(k)}: ${JSON.stringify(v).replace(/","/g, '", "')}`).join(', '));
+const firstProject = projects[0];
+const pad = (n: number) => String(n).padStart(2, '0');
+const [firstName, ...otherNames] = profile.name.split(' ');
+---
+
+<section class="hero" id="topo" aria-labelledby="hero-title">
+  <div class="hero__inner">
+    <div class="hero__text">
+      <p class="status-line status-line--pill"><span class="dot dot--success" aria-hidden="true"></span>{t('hero.status')}</p>
+      <h1 class="hero__title" id="hero-title">
+        <span class="hero__name-row">
+          <span class="hero__name">{firstName}<span class="visually-hidden"> {otherNames.join(' ')}</span><span class="hero__dot">.</span></span>
+          <span class="hero__tag" aria-hidden="true">C# / .NET</span>
+        </span>
+        <span class="hero__role">{t('hero.role')}</span>
+      </h1>
+      <p class="hero__pitch">{t('hero.pitch')}</p>
+      <ul class="hero__links" aria-label={t('hero.links')}>
+        <li class="hero__links-cv"><a class="btn btn--primary btn--lg" href={profile.cv} download><Icon name="download" />{t('hero.cv')}</a></li>
+        <li><a class="btn btn--outline btn--lg" href={profile.github} rel="me"><Icon name="code" />{t('hero.github')}</a></li>
+        <li><a class="btn btn--outline btn--lg" href={profile.linkedin} rel="me"><Icon name="briefcase" />{t('hero.linkedin')}</a></li>
+        <li><a class="btn btn--outline btn--lg" href="#contato" title={t('hero.emailTitle')}><Icon name="mail" />{t('hero.email')}</a></li>
+      </ul>
+      {
+        firstProject && (
+          <a
+            class="try-link"
+            href={buildProjectHash({ slug: firstProject.id, tab: 'try' }, lang)}
+            data-open-project={firstProject.id}
+            data-open-tab="try"
+            aria-haspopup="dialog"
+          >
+            <Icon name="play" size={16} />
+            <span class="hide-phone">{t('hero.tryLive')}</span>
+            <span class="show-phone">{t('hero.tryLiveShort')}</span>
+          </a>
+        )
+      }
+    </div>
+
+    <figure class="hero-photo" aria-label={t('hero.card')}>
+      <div class="hero-photo__frame">
+        <Picture
+          src={foto}
+          formats={['webp']}
+          fallbackFormat="jpg"
+          widths={[480, 800]}
+          sizes="(max-width: 640px) 92vw, 430px"
+          width={800}
+          height={800}
+          alt={t('hero.photoAlt')}
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+          class="hero-photo__img"
+        />
+        <span class="hero-photo__shade" aria-hidden="true"></span>
+      </div>
+      <figcaption class="hero-photo__card">
+        <span class="hero-photo__req">
+          <span><span class="method--get-hero">GET</span> /{profile.handle}</span>
+          <span class="status-badge" data-kind="success">200 OK</span>
+        </span>
+        {heroCard[lang].map((row) => <code class:list={['hero-photo__line', { 'hide-phone': !row.phone }]} set:html={cardLine(row)} />)}
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section section--band" id="projetos" aria-labelledby="projects-title">
+  <div class="container section__inner">
+    <header class="section__head">
+      <p class="eyebrow">{t('projects.eyebrow')}</p>
+      <h2 id="projects-title">{t('projects.title')}</h2>
+      <p class="section__intro hide-phone" set:html={t('projects.intro')} />
+      <p class="section__intro show-phone" set:html={t('projects.introShort')} />
+    </header>
+    <ul class:list={['project-grid', { 'project-grid--single': projects.length === 1 }]}>
+      {
+        projects.map((p, i) => (
+          <li>
+            <article class="project-card" data-project-card={p.id} aria-labelledby={`card-title-${p.id}`}>
+              {p.data.card.thumbnail && (
+                <ProjectThumbnail file={p.data.card.thumbnail.svg} alt={l(p.data.card.thumbnail.alt, lang)} lang={lang} />
+              )}
+              <div class="project-card__body">
+              <div class="project-card__top">
+                <span class="project-card__index">API · {pad(i + 1)}</span>
+                {p.data.demo.mode === 'live' ? (
+                  <span class="demo-state demo-state--live"><span class="dot dot--success" aria-hidden="true" />{t('projects.live')}</span>
+                ) : (
+                  <span class="demo-state demo-state--recorded"><span class="dot dot--ring" aria-hidden="true" />{t('projects.recorded')}</span>
+                )}
+              </div>
+              <h3 class="project-card__title" id={`card-title-${p.id}`}>{l(p.data.title, lang)}</h3>
+              <p class="project-card__problem">
+                <strong>{t('projects.problem')}</strong> {l(p.data.card.problem, lang)}
+              </p>
+              <ul class="stack-list" aria-label={t('projects.stack')}>
+                {p.data.stack.map((s) => (
+                  <li>{s}</li>
+                ))}
+              </ul>
+              {p.data.card.metric && (
+                <div class="project-card__metric">
+                  <span class="metric-value">{p.data.card.metric.value}</span>
+                  <span class="project-card__caption">{l(p.data.card.metric.caption, lang)}</span>
+                </div>
+              )}
+              <div class="project-card__actions">
+                <a
+                  class="btn btn--primary"
+                  href={buildProjectHash({ slug: p.id, tab: 'try' }, lang)}
+                  data-open-project={p.id}
+                  data-open-tab="try"
+                  aria-haspopup="dialog"
+                >
+                  <Icon name="play" size={16} />
+                  {t('projects.try')}
+                  <span class="visually-hidden">: {l(p.data.title, lang)}</span>
+                </a>
+                <a
+                  class="btn btn--outline"
+                  href={buildProjectHash({ slug: p.id, tab: 'overview' }, lang)}
+                  data-open-project={p.id}
+                  data-open-tab="overview"
+                  aria-haspopup="dialog"
+                >
+                  {t('projects.details')}
+                  <span class="visually-hidden">: {l(p.data.title, lang)}</span>
+                </a>
+              </div>
+              </div>
+            </article>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<section class="section" id="habilidades" aria-labelledby="skills-title">
+  <div class="container section__inner">
+    <header class="section__head">
+      <p class="eyebrow">{t('skills.eyebrow')}</p>
+      <h2 id="skills-title">{t('skills.title')}</h2>
+      <p class="section__intro">{t('skills.intro')}</p>
+    </header>
+    <dl class="skills-grid">
+      {
+        skills.map((g) => (
+          <div class="skill-group">
+            <dt>
+              <SkillIcon name={g.data.icon} />
+              {l(g.data.title, lang)}
+            </dt>
+            <dd>{g.data.items.map((i) => (typeof i === 'string' ? i : l(i, lang))).join(' · ')}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+</section>
+
+<section class="section section--rule" id="experiencia" aria-labelledby="experience-title">
+  <div class="container section__inner">
+    <header class="section__head">
+      <p class="eyebrow">{t('experience.eyebrow')}</p>
+      <h2 id="experience-title">{t('experience.title')}</h2>
+      <p class="section__intro">{t('experience.intro')}</p>
+    </header>
+    <ol class="timeline">
+      {
+        experience.map((job) => (
+          <li class:list={['timeline__item', { 'timeline__item--current': job.data.current }]}>
+            <span class="timeline__node" aria-hidden="true" />
+            <span class="timeline__period">{l(job.data.period, lang)}</span>
+            <div class="timeline__body">
+              <h3>
+                {l(job.data.role, lang)} · <span class="timeline__company">{job.data.company}</span>
+              </h3>
+              {job.data.location && <p class="timeline__location">{l(job.data.location, lang)}</p>}
+              {job.data.highlights.length > 1 ? (
+                <ul class="timeline__list">
+                  {job.data.highlights.map((h) => (
+                    <li>{l(h, lang)}</li>
+                  ))}
+                </ul>
+              ) : (
+                job.data.highlights.map((h) => <p>{l(h, lang)}</p>)
+              )}
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+    <div class="background">
+      <section class="background__group" aria-labelledby="education-title">
+        <h3 class="eyebrow" id="education-title">{t('education.title')}</h3>
+        <ul class="background__list">
+          {education.map((e) => (
+            <li>
+              <span class="background__period">{e.period}</span>
+              <span>{l(e.course, lang)} · <span class="background__school">{e.school}</span></span>
+            </li>
+          ))}
+        </ul>
+      </section>
+      <section class="background__group" aria-labelledby="languages-title">
+        <h3 class="eyebrow" id="languages-title">{t('languages.title')}</h3>
+        <ul class="background__list">
+          {spokenLanguages[lang].map((x) => <li>{x}</li>)}
+        </ul>
+      </section>
+    </div>
+  </div>
+</section>
+
+{
+  articles.length > 0 && (
+    <section class="section section--tight" id="artigos" aria-labelledby="articles-title">
+      <div class="container section__inner">
+        <header class="section__head">
+          <p class="eyebrow">{t('articles.eyebrow')}</p>
+          <h2 class="h2--small" id="articles-title">{t('articles.title')}</h2>
+        </header>
+        <ul class="article-list">
+          {articles.map((a) => (
+            <li>
+              <a class="article-card" href={a.data.url}>
+                <span class="article-card__title">{l(a.data.title, lang)}</span>
+                <span class="article-card__meta">
+                  <time datetime={a.data.date.toISOString()}>{dateFmt.format(a.data.date)}</time> · {l(a.data.summary, lang)}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+<section class="section section--band" id="contato" aria-labelledby="contact-title">
+  <div class="container contact">
+    <div class="contact__aside">
+      <div class="contact__intro">
+        <p class="eyebrow">{t('contact.eyebrow')}</p>
+        <h2 id="contact-title">{t('contact.title')}</h2>
+        <p class="section__intro">{t('contact.text')}</p>
+        <ul class="pill-list" aria-label={t('contact.hiring')}>
+          {hiring[lang].map((h) => <li>{h}</li>)}
+        </ul>
+      </div>
+
+      <div class="contact-card" aria-label={t('contact.elsewhere')} role="group">
+        <div class="contact-card__email">
+          <div class="contact-card__email-text">
+            <span class="contact-card__label">{t('contact.email')}</span>
+            <a class="contact-card__address" href={`mailto:${profile.email}`}>{profile.email}</a>
+          </div>
+          <button class="btn btn--outline" type="button" data-copy={profile.email} data-copied-label={t('contact.copied')}>{t('contact.copy')}</button>
+        </div>
+        <a class="contact-card__row" href={profile.linkedin} rel="me"><span>LinkedIn</span><span class="contact-card__value">{profile.linkedinLabel}</span></a>
+        <a class="contact-card__row" href={profile.github} rel="me"><span>GitHub</span><span class="contact-card__value">{profile.githubLabel}</span></a>
+        <a class="contact-card__row" href={profile.cv} download><span>{t('contact.cv')}</span><span class="contact-card__value">{profile.cvLabel}</span></a>
+      </div>
+    </div>
+
+    <ContactForm lang={lang} />
+  </div>
+</section>
+
+<ProjectPanel lang={lang} projects={projects} />

@@ -1,0 +1,116 @@
+---
+/**
+ * Contact form: sends the message from the page (Web3Forms, see src/lib/contact-form.ts).
+ * Behaviour lives in src/scripts/contact-form.ts; this file is markup only.
+ */
+import { useTranslations, ui, type Lang, type UIKey } from '../i18n/ui';
+import { SUBJECTS, LIMITS } from '../lib/contact-form';
+import { profile } from '@data/site.config';
+import { contactForm } from '../contact.config';
+import Icon from './Icon.astro';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const fmt = (key: UIKey, params: Record<string, number>) =>
+  t(key).replace(/\{(\w+)\}/g, (m, k: string) => (k in params ? String(params[k]) : m));
+
+/** Messages the script needs (errors, states), passed as JSON. */
+const i18n = Object.fromEntries(
+  (Object.keys(ui[lang]) as UIKey[]).filter((k) => k.startsWith('form.')).map((k) => [k, t(k)]),
+);
+const optional = t('form.optional');
+---
+
+<div class="contact-form-card" data-contact-form-card>
+  <form
+    class="contact-form"
+    data-contact-form
+    novalidate
+    aria-labelledby="contact-form-title"
+    data-endpoint={contactForm.endpoint}
+    data-access-key={contactForm.accessKey}
+    data-lang={lang}
+    data-i18n={JSON.stringify(i18n)}
+  >
+    <div class="contact-form__head">
+      <h3 id="contact-form-title">{t('form.title')}</h3>
+      <p class="contact-form__note">{t('form.required')}</p>
+    </div>
+
+    <div class="field" data-field="name">
+      <label for="cf-name">{t('form.name')} <span class="field__req" aria-hidden="true">*</span></label>
+      <input id="cf-name" name="name" type="text" autocomplete="name" required maxlength={LIMITS.nameMax} aria-describedby="cf-name-error" />
+      <p class="field__error" id="cf-name-error" data-error-for="name"></p>
+    </div>
+
+    <div class="field" data-field="email">
+      <label for="cf-email">{t('form.email')} <span class="field__req" aria-hidden="true">*</span></label>
+      <input id="cf-email" name="email" type="email" autocomplete="email" inputmode="email" required maxlength={LIMITS.emailMax} aria-describedby="cf-email-hint cf-email-error" />
+      <p class="field__hint" id="cf-email-hint">{t('form.emailHint')}</p>
+      <p class="field__error" id="cf-email-error" data-error-for="email"></p>
+    </div>
+
+    <div class="field-row">
+      <div class="field" data-field="company">
+        <label for="cf-company">{t('form.company')} <span class="field__opt">{optional}</span></label>
+        <input id="cf-company" name="company" type="text" autocomplete="organization" maxlength={LIMITS.companyMax} aria-describedby="cf-company-error" />
+        <p class="field__error" id="cf-company-error" data-error-for="company"></p>
+      </div>
+      <div class="field" data-field="phone">
+        <label for="cf-phone">{t('form.phone')} <span class="field__opt">{optional}</span></label>
+        <input id="cf-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="30" aria-describedby="cf-phone-error" />
+        <p class="field__error" id="cf-phone-error" data-error-for="phone"></p>
+      </div>
+    </div>
+
+    <div class="field" data-field="subject">
+      <label for="cf-subject">{t('form.subject')} <span class="field__req" aria-hidden="true">*</span></label>
+      <select id="cf-subject" name="subject" required aria-describedby="cf-subject-error">
+        <option value="">{t('form.subjectPick')}</option>
+        {SUBJECTS.map((s) => <option value={s}>{t(`form.subject.${s}` as UIKey)}</option>)}
+      </select>
+      <p class="field__error" id="cf-subject-error" data-error-for="subject"></p>
+    </div>
+
+    <div class="field" data-field="message">
+      <label for="cf-message">{t('form.message')} <span class="field__req" aria-hidden="true">*</span></label>
+      <textarea id="cf-message" name="message" rows="6" required maxlength={LIMITS.messageMax} aria-describedby="cf-message-hint cf-message-error"></textarea>
+      <p class="field__hint" id="cf-message-hint">{fmt('form.messageHint', { min: LIMITS.messageMin })}</p>
+      <p class="field__error" id="cf-message-error" data-error-for="message"></p>
+    </div>
+
+    <!-- Honeypot: off-screen and skipped by keyboard and screen readers; bots fill it in. -->
+    <div class="field--hp" aria-hidden="true">
+      <label for="cf-website">{t('form.honeypot')}</label>
+      <input id="cf-website" name="botcheck" type="text" tabindex="-1" autocomplete="off" />
+    </div>
+
+    <div class="contact-form__foot">
+      <button class="btn btn--primary btn--lg contact-form__submit" type="submit" data-form-submit>
+        <Icon name="send" />
+        <span data-submit-label>{t('form.send')}</span>
+      </button>
+      <p class="contact-form__status" role="status" aria-live="polite" data-form-status></p>
+    </div>
+
+    <div class="contact-form__failure" data-form-failure role="alert" hidden>
+      <p><span data-failure-text>{t('form.failure')}</span> <strong class="contact-form__fallback">{profile.email}</strong>.</p>
+      <button class="btn btn--outline btn--sm" type="button" data-copy={profile.email} data-copied-label={t('contact.copied')}>{t('contact.copy')}</button>
+    </div>
+  </form>
+
+  <div class="contact-form__success" data-form-success hidden tabindex="-1">
+    <span class="contact-form__success-badge"><span class="status-badge" data-kind="success">200 OK</span></span>
+    <p class="contact-form__success-title">{t('form.success.title')}</p>
+    <p class="contact-form__success-text" data-success-text></p>
+    <button class="btn btn--outline" type="button" data-form-again>{t('form.success.again')}</button>
+  </div>
+</div>
+
+<script>
+  import { initContactForm } from '../scripts/contact-form';
+  initContactForm();
+</script>

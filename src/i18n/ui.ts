@@ -1,0 +1,322 @@
+/**
+ * All interface copy lives here, except the personal texts (data/<pasta>/copy.ts). Content (projects, experience, skills) lives in data/<pasta>/content.
+ * Add a key to `pt` first; TypeScript then requires the same key in `en`.
+ */
+import { copy } from '@data/copy';
+
+export const languages = { pt: 'Português', en: 'English' } as const;
+export type Lang = keyof typeof languages;
+export const defaultLang: Lang = 'pt';
+
+/** BCP 47 tags for <html lang>, hreflang and og:locale. */
+export const htmlLang: Record<Lang, string> = { pt: 'pt-BR', en: 'en' };
+export const ogLocale: Record<Lang, string> = { pt: 'pt_BR', en: 'en_US' };
+
+const pt = {
+
+  'nav.skip': 'Pular para o conteúdo',
+  'nav.projects': 'Projetos',
+  'nav.skills': 'Habilidades',
+  'nav.experience': 'Experiência',
+  'nav.articles': 'Artigos',
+  'nav.contact': 'Contato',
+  'nav.primary': 'Principal',
+  'nav.menu': 'Menu',
+  'lang.group': 'Idioma',
+  'lang.pt': 'Português',
+  'lang.en': 'Read in English',
+  'theme.light': 'Tema claro',
+  'theme.title': 'Alternar entre tema claro e escuro',
+
+  'hero.cv': 'Baixar CV (PDF)',
+  'hero.github': 'GitHub',
+  'hero.linkedin': 'LinkedIn',
+  'hero.email': 'E-mail',
+  'hero.links': 'Links de contato',
+  'hero.tryLive': 'Testar uma API agora, sem sair da página',
+  'hero.tryLiveShort': 'Testar uma API agora',
+  'hero.card': 'Resumo do perfil no formato de resposta de API',
+  'hero.emailTitle': 'Ir para o formulário de contato',
+
+  'projects.eyebrow': '01 · projetos',
+  'projects.title': 'Projetos que você pode testar agora',
+  'projects.intro': 'Cada projeto tem um console de API. Clique em <strong>Testar a API</strong> e envie as requisições sem sair desta página.',
+  'projects.introShort': 'Toque em <strong>Testar a API</strong> e envie as requisições sem sair da página.',
+  'projects.problem': 'Problema:',
+  'projects.try': 'Testar a API',
+  'projects.details': 'Ver detalhes',
+  'projects.stack': 'Stack',
+  'projects.live': 'demo online',
+  'projects.recorded': 'respostas gravadas',
+
+  'panel.counter': 'projeto {n} de {total}',
+  'panel.close': 'Fechar painel (Esc)',
+  'panel.repo': 'Repositório',
+  'panel.tabs': 'Seções do projeto',
+  'panel.tab.overview': 'Visão geral',
+  'panel.tab.try': 'Testar a API',
+  'panel.tab.code': 'Código',
+  'panel.tab.demo': 'Demo',
+  'panel.problem': 'O problema',
+  'panel.solution': 'A solução',
+  'panel.architecture': 'Arquitetura',
+  'panel.numbers': 'Números',
+  'panel.repoLong': 'Ver repositório no GitHub',
+  'panel.noMedia': 'Demo em vídeo em breve.',
+  'panel.private': 'Repositório privado',
+  'panel.privateNote':
+    'O código deste projeto é privado. Aqui ficam os contratos e as regras de arquitetura; o código eu mostro e explico numa entrevista.',
+  'panel.privateCta': 'Pedir para ver o código',
+
+  'console.requests': 'Requisições prontas',
+  'console.live': 'API ao vivo',
+  'console.liveLabel': 'ao vivo',
+  'console.recordedMode': 'Esta demo ainda não está publicada. Mostrando respostas gravadas.',
+  'console.body': 'Corpo da requisição (editável)',
+  'console.headers': 'Cabeçalhos',
+  'console.send': 'Enviar',
+  'console.sendMobile': 'Enviar requisição',
+  'console.sending': 'Enviando…',
+  'console.retry': 'Tentar ao vivo de novo',
+  'console.reset': 'Restaurar corpo',
+  'console.response': 'Resposta',
+  'console.idle': 'Clique em <strong>Enviar</strong> para executar esta requisição na API de demonstração.',
+  'console.recorded': 'resposta gravada',
+  'console.recordedHint':
+    'A API de demonstração está em repouso (plano gratuito) e não respondeu a tempo. Mostrando a resposta gravada; tente de novo em ~30 s.',
+  'console.recordedLatency': 'latência gravada',
+  'console.invalidJson': 'JSON inválido no corpo',
+  'console.tokenPending': '(use “Gerar token” primeiro)',
+  'console.tokenFilled': '(preenchido)',
+
+  'skills.eyebrow': '02 · habilidades',
+  'skills.title': 'O que eu uso no dia a dia',
+  'experience.eyebrow': '03 · experiência',
+  'experience.title': 'Onde trabalhei e o que mudou',
+  'education.title': 'formação',
+  'languages.title': 'idiomas',
+  'articles.eyebrow': '04 · artigos',
+  'articles.title': 'Escrevendo sobre',
+  'contact.eyebrow': '05 · contato',
+  'contact.title': 'Vamos conversar sobre a sua vaga',
+  'contact.text': 'Conte um pouco sobre a vaga ou o projeto. A mensagem chega direto no meu e-mail e eu respondo por lá.',
+  'contact.hiring': 'Modelos de contratação',
+  'contact.email': 'E-mail',
+  'contact.copy': 'Copiar',
+  'contact.copied': 'Copiado',
+  'contact.cv': 'Currículo',
+  'contact.cvShort': 'Currículo PDF',
+  'contact.elsewhere': 'Outros canais',
+  'form.title': 'Enviar mensagem',
+  'form.required': 'Campos com * são obrigatórios.',
+  'form.name': 'Nome',
+  'form.email': 'E-mail',
+  'form.emailHint': 'Para eu responder.',
+  'form.company': 'Empresa',
+  'form.phone': 'Telefone / WhatsApp',
+  'form.optional': '(opcional)',
+  'form.subject': 'Assunto',
+  'form.subjectPick': 'Escolha um assunto',
+  'form.subject.clt': 'Vaga CLT',
+  'form.subject.pj': 'Vaga PJ / contrato',
+  'form.subject.freelance': 'Freelance',
+  'form.subject.outro': 'Outro',
+  'form.message': 'Mensagem',
+  'form.messageHint': 'Mínimo de {min} caracteres.',
+  'form.honeypot': 'Não preencha este campo',
+  'form.send': 'Enviar mensagem',
+  'form.sending': 'Enviando…',
+  'form.err.name.required': 'Informe seu nome.',
+  'form.err.name.tooLong': 'Use no máximo {max} caracteres.',
+  'form.err.email.required': 'Informe seu e-mail para eu responder.',
+  'form.err.email.invalid': 'E-mail inválido. Use o formato nome@empresa.com.',
+  'form.err.company.tooLong': 'Use no máximo {max} caracteres.',
+  'form.err.phone.invalid': 'Telefone inválido. Use só números, com DDD (ex.: 83 99999-9999).',
+  'form.err.subject.required': 'Escolha um assunto.',
+  'form.err.message.required': 'Escreva sua mensagem.',
+  'form.err.message.tooShort': 'Escreva pelo menos {min} caracteres (faltam {left}).',
+  'form.err.message.tooLong': 'Use no máximo {max} caracteres.',
+  'form.err.summary': 'Corrija {n} campo(s) destacado(s) antes de enviar.',
+  'form.success.title': 'Mensagem enviada.',
+  'form.success.text': 'Obrigado, {name}! Respondo no e-mail {email}.',
+  'form.success.again': 'Enviar outra mensagem',
+  'form.failure': 'Não foi possível enviar agora. Tente de novo em instantes ou escreva direto para',
+  'footer.built': 'Feito com Astro',
+  'footer.source': 'código-fonte',
+  '404.title': 'Página não encontrada',
+  '404.back': 'Voltar para o início',
+};
+
+/** Keys whose text is personal: they come from the data folder (data/<pasta>/copy.ts), not from here. */
+export const PERSONAL_KEYS = [
+  'meta.title',
+  'meta.description',
+  'hero.status',
+  'hero.role',
+  'hero.pitch',
+  'hero.photoAlt',
+  'skills.intro',
+  'experience.intro',
+] as const;
+export type PersonalKey = (typeof PERSONAL_KEYS)[number];
+export type PersonalCopy = Record<Lang, Record<PersonalKey, string>>;
+
+type BaseKey = keyof typeof pt;
+export type UIKey = BaseKey | PersonalKey;
+
+const en: Record<BaseKey, string> = {
+
+  'nav.skip': 'Skip to content',
+  'nav.projects': 'Projects',
+  'nav.skills': 'Skills',
+  'nav.experience': 'Experience',
+  'nav.articles': 'Articles',
+  'nav.contact': 'Contact',
+  'nav.primary': 'Main',
+  'nav.menu': 'Menu',
+  'lang.group': 'Language',
+  'lang.pt': 'Ler em português',
+  'lang.en': 'English',
+  'theme.light': 'Light theme',
+  'theme.title': 'Switch between light and dark theme',
+
+  'hero.cv': 'Download CV (PDF)',
+  'hero.github': 'GitHub',
+  'hero.linkedin': 'LinkedIn',
+  'hero.email': 'Email',
+  'hero.links': 'Contact links',
+  'hero.tryLive': 'Try an API now, without leaving the page',
+  'hero.tryLiveShort': 'Try an API now',
+  'hero.card': 'Profile summary formatted as an API response',
+  'hero.emailTitle': 'Go to the contact form',
+
+  'projects.eyebrow': '01 · projects',
+  'projects.title': 'Projects you can test right now',
+  'projects.intro': 'Every project has an API console. Click <strong>Try the API</strong> and send the requests without leaving this page.',
+  'projects.introShort': 'Tap <strong>Try the API</strong> and send the requests without leaving the page.',
+  'projects.problem': 'Problem:',
+  'projects.try': 'Try the API',
+  'projects.details': 'See details',
+  'projects.stack': 'Stack',
+  'projects.live': 'demo online',
+  'projects.recorded': 'recorded responses',
+
+  'panel.counter': 'project {n} of {total}',
+  'panel.close': 'Close panel (Esc)',
+  'panel.repo': 'Repository',
+  'panel.tabs': 'Project sections',
+  'panel.tab.overview': 'Overview',
+  'panel.tab.try': 'Try the API',
+  'panel.tab.code': 'Code',
+  'panel.tab.demo': 'Demo',
+  'panel.problem': 'The problem',
+  'panel.solution': 'The solution',
+  'panel.architecture': 'Architecture',
+  'panel.numbers': 'Numbers',
+  'panel.repoLong': 'View repository on GitHub',
+  'panel.noMedia': 'Video demo coming soon.',
+  'panel.private': 'Private repository',
+  'panel.privateNote':
+    "The code for this project is private. Here you'll find the contracts and architecture rules; I'm happy to walk through the code in an interview.",
+  'panel.privateCta': 'Ask to see the code',
+
+  'console.requests': 'Ready-made requests',
+  'console.live': 'Live API',
+  'console.liveLabel': 'live',
+  'console.recordedMode': 'This demo is not deployed yet. Showing recorded responses.',
+  'console.body': 'Request body (editable)',
+  'console.headers': 'Headers',
+  'console.send': 'Send',
+  'console.sendMobile': 'Send request',
+  'console.sending': 'Sending…',
+  'console.retry': 'Try live again',
+  'console.reset': 'Reset body',
+  'console.response': 'Response',
+  'console.idle': 'Click <strong>Send</strong> to run this request against the demo API.',
+  'console.recorded': 'recorded response',
+  'console.recordedHint':
+    "The demo API is asleep (free tier) and didn't answer in time. Showing the recorded response; try again in ~30 s.",
+  'console.recordedLatency': 'recorded latency',
+  'console.invalidJson': 'Invalid JSON in body',
+  'console.tokenPending': '(run “Get token” first)',
+  'console.tokenFilled': '(filled in)',
+
+  'skills.eyebrow': '02 · skills',
+  'skills.title': 'What I use day to day',
+  'experience.eyebrow': '03 · experience',
+  'experience.title': 'Where I worked and what changed',
+  'education.title': 'education',
+  'languages.title': 'languages',
+  'articles.eyebrow': '04 · articles',
+  'articles.title': 'Writing about',
+  'contact.eyebrow': '05 · contact',
+  'contact.title': "Let's talk about your opening",
+  'contact.text': 'Tell me a bit about the role or the project. The message goes straight to my inbox and I reply from there.',
+  'contact.hiring': 'Contract types',
+  'contact.email': 'Email',
+  'contact.copy': 'Copy',
+  'contact.copied': 'Copied',
+  'contact.cv': 'Résumé',
+  'contact.cvShort': 'Résumé PDF',
+  'contact.elsewhere': 'Other channels',
+  'form.title': 'Send a message',
+  'form.required': 'Fields marked * are required.',
+  'form.name': 'Name',
+  'form.email': 'Email',
+  'form.emailHint': 'So I can reply.',
+  'form.company': 'Company',
+  'form.phone': 'Phone / WhatsApp',
+  'form.optional': '(optional)',
+  'form.subject': 'Subject',
+  'form.subjectPick': 'Pick a subject',
+  'form.subject.clt': 'Full-time role (CLT)',
+  'form.subject.pj': 'Contract role (PJ)',
+  'form.subject.freelance': 'Freelance',
+  'form.subject.outro': 'Other',
+  'form.message': 'Message',
+  'form.messageHint': 'At least {min} characters.',
+  'form.honeypot': 'Leave this field empty',
+  'form.send': 'Send message',
+  'form.sending': 'Sending…',
+  'form.err.name.required': 'Please enter your name.',
+  'form.err.name.tooLong': 'Use at most {max} characters.',
+  'form.err.email.required': 'Please enter your email so I can reply.',
+  'form.err.email.invalid': 'Invalid email. Use the format name@company.com.',
+  'form.err.company.tooLong': 'Use at most {max} characters.',
+  'form.err.phone.invalid': 'Invalid phone number. Use digits only, with the area code (e.g. +55 83 99999-9999).',
+  'form.err.subject.required': 'Please pick a subject.',
+  'form.err.message.required': 'Please write your message.',
+  'form.err.message.tooShort': 'Write at least {min} characters ({left} to go).',
+  'form.err.message.tooLong': 'Use at most {max} characters.',
+  'form.err.summary': 'Fix {n} highlighted field(s) before sending.',
+  'form.success.title': 'Message sent.',
+  'form.success.text': 'Thank you, {name}! I will reply to {email}.',
+  'form.success.again': 'Send another message',
+  'form.failure': "The message couldn't be sent right now. Try again in a moment or write to me directly at",
+  'footer.built': 'Built with Astro',
+  'footer.source': 'source code',
+  '404.title': 'Page not found',
+  '404.back': 'Back to home',
+};
+
+export const ui: Record<Lang, Record<UIKey, string>> = {
+  pt: { ...pt, ...copy.pt },
+  en: { ...en, ...copy.en },
+};
+
+export function useTranslations(lang: Lang) {
+  return (key: UIKey) => ui[lang][key];
+}
+
+/** Pick the right language from a `{ pt, en }` content field. */
+export function l<T>(value: Record<Lang, T>, lang: Lang): T {
+  return value[lang] ?? value[defaultLang];
+}
+
+export function pathFor(lang: Lang): string {
+  return lang === defaultLang ? '/' : `/${lang}/`;
+}
+
+export function otherLang(lang: Lang): Lang {
+  return lang === 'pt' ? 'en' : 'pt';
+}

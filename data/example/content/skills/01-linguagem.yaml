@@ -1,0 +1,5 @@
+# Exemplo fictício. "icon": veja src/lib/skill-icons.ts.
+order: 1
+title: { pt: Linguagens, en: Languages }
+icon: code
+items: ["C#", "SQL", "TypeScript"]

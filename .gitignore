@@ -1,0 +1,42 @@
+# Dependências e build
+node_modules/
+dist/
+.astro/
+
+# Testes
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Variáveis de ambiente (a chave do formulário fica só no Cloudflare Pages)
+.env
+.env.*
+!.env.example
+
+# Arquivos locais de ferramentas e do sistema
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+.claude/
+CLAUDE.md
+
+# Foto original: o site usa src/assets/foto.png (otimizada no build)
+/public/foto.png
+
+# Seus dados reais: ficam só na sua máquina e entram apenas no build do deploy
+/data/personal/
+
+# Gerados a partir de data/<pasta>/public no build
+/public/cv.pdf
+/public/og.png
+/public/favicon.svg
+/public/robots.txt
+dist-e2e/
+
+# Locais antigos dos dados pessoais (antes de data/personal): nunca versionar
+/src/site.config.ts
+/src/content/
+/src/assets/

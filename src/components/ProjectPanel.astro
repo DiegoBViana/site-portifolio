@@ -1,0 +1,315 @@
+---
+/**
+ * One <dialog> holding every project's view. All HTML (including Shiki-highlighted
+ * code) is rendered at build time; src/scripts/project-panel.ts only toggles it.
+ */
+import type { CollectionEntry } from 'astro:content';
+import { Code } from 'astro:components';
+import type { CodeLanguage } from 'astro';
+import { useTranslations, l, type Lang } from '../i18n/ui';
+import { TABS, type TabId } from '../lib/project-hash';
+import { tokenTheme } from '../lib/shiki-theme';
+import Icon from './Icon.astro';
+
+interface Props {
+  lang: Lang;
+  projects: CollectionEntry<'projects'>[];
+}
+const { lang, projects } = Astro.props;
+const t = useTranslations(lang);
+
+const tabLabel: Record<TabId, string> = {
+  overview: t('panel.tab.overview'),
+  try: t('panel.tab.try'),
+  code: t('panel.tab.code'),
+  demo: t('panel.tab.demo'),
+};
+
+/** Strings the client script needs. */
+const clientI18n = {
+  send: t('console.send'),
+  sendMobile: t('console.sendMobile'),
+  sending: t('console.sending'),
+  live: t('console.liveLabel'),
+  recorded: t('console.recorded'),
+  recordedLatency: t('console.recordedLatency'),
+  invalidJson: t('console.invalidJson'),
+  tokenPending: t('console.tokenPending'),
+  tokenFilled: t('console.tokenFilled'),
+};
+const pad = (n: number) => String(n).padStart(2, '0');
+const host = (url: string) => new URL(url).host;
+---
+
+<dialog class="project-panel" id="project-panel" data-lang={lang} data-i18n={JSON.stringify(clientI18n)}>
+  {
+    projects.map((p, index) => {
+      const slug = p.id;
+      const d = p.data;
+      const ids = (tab: TabId) => ({ tab: `tab-${slug}-${tab}`, panel: `tabpanel-${slug}-${tab}` });
+      const consoleRequests = d.requests.map((r) => ({
+        id: r.id,
+        method: r.method,
+        path: r.path,
+        headers: r.headers,
+        body: r.body?.trimEnd(),
+        tip: r.tip ? l(r.tip, lang) : r.description ? l(r.description, lang) : '',
+        sample: r.sample,
+      }));
+      const first = d.requests[0];
+      const recordedMode = d.demo.mode === 'recorded';
+      return (
+        <article class="project-view" data-project={slug} aria-labelledby={`pv-title-${slug}`} hidden>
+          <div class="project-view__head">
+            <span class="sheet-handle" aria-hidden="true" />
+            <div class="project-view__top">
+              <div class="project-view__heading">
+                <span class="project-view__counter">
+                  {t('panel.counter').replace('{n}', pad(index + 1)).replace('{total}', pad(projects.length))}
+                </span>
+                <h2 class="project-view__title" id={`pv-title-${slug}`}>
+                  {l(d.title, lang)}
+                </h2>
+                <p class="project-view__stack">{d.stack.join(' · ')}</p>
+              </div>
+              <div class="project-view__actions">
+                {d.privateRepo ? (
+                  <span class="private-badge project-view__repo">
+                    <Icon name="lock" size={14} />
+                    {t('panel.private')}
+                  </span>
+                ) : (
+                  d.repo && (
+                    <a class="btn btn--outline btn--sm project-view__repo" href={d.repo} rel="noopener">
+                      <Icon name="code" size={16} />
+                      {t('panel.repo')}
+                    </a>
+                  )
+                )}
+                <button class="icon-btn project-view__close" type="button" data-panel-close aria-label={t('panel.close')}>
+                  <Icon name="close" />
+                </button>
+              </div>
+            </div>
+
+            <div class="tabs" role="tablist" aria-label={t('panel.tabs')} data-tablist>
+              {TABS.map((tab, i) => (
+                <button
+                  type="button"
+                  role="tab"
+                  class="tabs__tab"
+                  id={ids(tab).tab}
+                  aria-controls={ids(tab).panel}
+                  aria-selected={i === 0 ? 'true' : 'false'}
+                  tabindex={i === 0 ? 0 : -1}
+                  data-tab={tab}
+                >
+                  {tabLabel[tab]}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div class="project-view__body">
+            {/* ---- Visão geral ---- */}
+            <section class="tabpanel" role="tabpanel" id={ids('overview').panel} aria-labelledby={ids('overview').tab} tabindex="0" data-tabpanel="overview">
+              <div class="prose-block">
+                <h3>{t('panel.problem')}</h3>
+                <p>{l(d.overview.problem, lang)}</p>
+              </div>
+              {d.overview.solution && (
+                <div class="prose-block">
+                  <h3>{t('panel.solution')}</h3>
+                  <p>{l(d.overview.solution, lang)}</p>
+                </div>
+              )}
+              {(d.overview.architecture || d.overview.diagram) && (
+                <div class="prose-block">
+                  <h3>{t('panel.architecture')}</h3>
+                  {d.overview.architecture && (
+                    <figure class="arch" role="img" aria-label={l(d.overview.architecture.alt, lang)}>
+                      {d.overview.architecture.columns.map((col) => (
+                        <div class="arch__col">
+                          {col.map((node, i) => (
+                            <>
+                              {i > 0 && <span class="arch__arrow" aria-hidden="true">↓</span>}
+                              <div class={`arch__node arch__node--${node.variant}`}>
+                                <strong>{node.name}</strong>
+                                {node.description && <span>{l(node.description, lang)}</span>}
+                              </div>
+                            </>
+                          ))}
+                        </div>
+                      ))}
+                    </figure>
+                  )}
+                  {d.overview.diagram && (
+                    <figure class="diagram">
+                      <img src={d.overview.diagram.src} alt={l(d.overview.diagram.alt, lang)} loading="lazy" decoding="async" />
+                    </figure>
+                  )}
+                </div>
+              )}
+              {d.overview.metrics.length > 0 && (
+                <dl class="metrics" aria-label={t('panel.numbers')}>
+                  {d.overview.metrics.map((m) => (
+                    <div class="metric">
+                      <dt>{l(m.label, lang)}</dt>
+                      <dd class="metric-value">{m.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+            </section>
+
+            {/* ---- Testar a API ---- */}
+            <section class="tabpanel" role="tabpanel" id={ids('try').panel} aria-labelledby={ids('try').tab} tabindex="0" data-tabpanel="try" hidden>
+              {first && (
+                <div class="api-console" data-console data-base-url={d.demo.baseUrl} data-timeout={d.demo.timeoutMs} data-mode={d.demo.mode}>
+                  <script type="application/json" data-requests set:html={JSON.stringify(consoleRequests).replace(/</g, '\\u003c')} />
+
+                  {recordedMode ? (
+                    <p class="notice notice--warning" data-mode-notice>
+                      <span class="dot dot--ring" aria-hidden="true" />
+                      <span>{t('console.recordedMode')}</span>
+                    </p>
+                  ) : (
+                    <p class="status-line status-line--sm" data-live-line>
+                      <span class="dot dot--success" aria-hidden="true" />
+                      <span>
+                        {t('console.live')} · {host(d.demo.baseUrl)}
+                        {d.demo.note && <> · {l(d.demo.note, lang)}</>}
+                      </span>
+                    </p>
+                  )}
+                  <div class="notice notice--warning" data-recorded-hint hidden>
+                    <span class="dot dot--ring" aria-hidden="true" />
+                    <p>{t('console.recordedHint')}</p>
+                    <button class="btn btn--outline btn--sm" type="button" data-retry>{t('console.retry')}</button>
+                  </div>
+
+                  <div class="console-layout">
+                    <fieldset class="request-list">
+                      <legend>{t('console.requests')}</legend>
+                      {d.requests.map((r, i) => (
+                        <label class="request-option">
+                          <input class="visually-hidden" type="radio" name={`req-${slug}`} value={r.id} checked={i === 0} />
+                          <span class="request-option__name">
+                            <span class="request-option__num" aria-hidden="true">{i + 1} </span>
+                            <span class="request-option__full">{l(r.name, lang)}</span>
+                            {r.shortName && <span class="request-option__short" aria-hidden="true">{l(r.shortName, lang)}</span>}
+                          </span>
+                          <span class="request-option__sub">
+                            <span class="method-text" data-method={r.method}>{r.method}</span> {r.hint ?? r.path}
+                          </span>
+                        </label>
+                      ))}
+                    </fieldset>
+
+                    <div class="console-main">
+                      <div class="api-card request-card">
+                        <div class="request-card__bar">
+                          <span class="method-badge" data-method={first.method} data-sel-method>{first.method}</span>
+                          <code class="request-card__path" data-sel-path>{first.path}</code>
+                          <button class="btn btn--primary hide-phone" type="button" data-send>
+                            <Icon name="send" size={16} />
+                            <span data-send-label>{t('console.send')}</span>
+                          </button>
+                        </div>
+                        <dl class="request-card__headers" aria-label={t('console.headers')} data-sel-headers />
+                        <div class="request-card__body" data-body-wrap hidden={first.body === undefined}>
+                          <label class="visually-hidden" for={`body-${slug}`}>{t('console.body')}</label>
+                          <textarea id={`body-${slug}`} class="request-card__textarea" data-body spellcheck="false" autocomplete="off" autocapitalize="off" rows="5" aria-describedby={`body-err-${slug}`} />
+                          <div class="request-card__body-foot">
+                            <p class="request-card__error" id={`body-err-${slug}`} data-body-error />
+                            <button class="link-btn" type="button" data-reset-body hidden>{t('console.reset')}</button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <section class="api-card response-card" data-response aria-busy="false" aria-labelledby={`res-title-${slug}`}>
+                        <div class="api-card__bar">
+                          <h3 class="response-card__title" id={`res-title-${slug}`}>{t('console.response')}</h3>
+                          <span class="response-card__meta" data-meta hidden>
+                            <span class="status-badge" data-status />
+                            <span class="response-card__latency" data-latency />
+                            <span class="response-card__source" data-source />
+                          </span>
+                        </div>
+                        <p class="response-card__placeholder" data-placeholder set:html={t('console.idle')} />
+                        <p class="response-card__headers" data-res-headers hidden />
+                        <pre class="json-view" data-output hidden><code data-output-code /></pre>
+                      </section>
+                      <p class="console-tip" data-tip>{consoleRequests[0].tip}</p>
+                      <p class="visually-hidden" aria-live="polite" data-announce />
+                    </div>
+                  </div>
+
+                  <div class="console-sticky show-phone">
+                    <button class="btn btn--primary btn--block btn--lg" type="button" data-send>
+                      <Icon name="send" size={16} />
+                      <span data-send-label>{t('console.sendMobile')}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </section>
+
+            {/* ---- Código ---- */}
+            <section class="tabpanel" role="tabpanel" id={ids('code').panel} aria-labelledby={ids('code').tab} tabindex="0" data-tabpanel="code" hidden>
+              {d.privateRepo && (
+                <div class="private-note" data-private-note>
+                  <Icon name="lock" size={18} />
+                  <p>{t('panel.privateNote')}</p>
+                  <a class="btn btn--outline btn--sm" href="#contato" data-panel-close>
+                    {t('panel.privateCta')}
+                  </a>
+                </div>
+              )}
+              {d.snippets.map((s) => (
+                <figure class="snippet">
+                  <figcaption class="snippet__title">{l(s.title, lang)}</figcaption>
+                  <div class="api-card">
+                    {s.file && <div class="api-card__bar snippet__file">{s.file}</div>}
+                    <Code code={s.code.trimEnd()} lang={s.lang as CodeLanguage} theme={tokenTheme} />
+                  </div>
+                </figure>
+              ))}
+              {d.repo && (
+                <p>
+                  <a class="btn btn--outline" href={d.repo} rel="noopener">
+                    <Icon name="code" size={16} />
+                    {t('panel.repoLong')}
+                  </a>
+                </p>
+              )}
+            </section>
+
+            {/* ---- Demo ---- */}
+            <section class="tabpanel" role="tabpanel" id={ids('demo').panel} aria-labelledby={ids('demo').tab} tabindex="0" data-tabpanel="demo" hidden>
+              {d.media ? (
+                <figure class="demo-media">
+                  {d.media.type === 'video' ? (
+                    <video controls preload="none" playsinline muted poster={d.media.poster} aria-label={l(d.media.alt, lang)}>
+                      <source src={d.media.src} />
+                    </video>
+                  ) : (
+                    <img src={d.media.src} alt={l(d.media.alt, lang)} loading="lazy" decoding="async" width="800" height="450" />
+                  )}
+                  {d.media.caption && <figcaption>{l(d.media.caption, lang)}</figcaption>}
+                </figure>
+              ) : (
+                <p>{t('panel.noMedia')}</p>
+              )}
+            </section>
+          </div>
+        </article>
+      );
+    })
+  }
+</dialog>
+
+<script>
+  import { initProjectPanel } from '../scripts/project-panel';
+  initProjectPanel();
+</script>

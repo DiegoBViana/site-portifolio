@@ -1,0 +1,154 @@
+---
+import '../styles/tokens.css';
+import '../styles/base.css';
+import '../styles/home.css';
+import '../styles/panel.css';
+import { htmlLang, ogLocale, useTranslations, pathFor, otherLang, type Lang } from '../i18n/ui';
+import { profile } from '@data/site.config';
+
+interface Props {
+  lang: Lang;
+  title?: string;
+  description?: string;
+  /** Path of this page in PT and EN, for hreflang + the language toggle. */
+  alternates?: Record<Lang, string>;
+  noindex?: boolean;
+}
+
+const { lang, noindex = false } = Astro.props;
+const t = useTranslations(lang);
+const title = Astro.props.title ?? t('meta.title');
+const description = Astro.props.description ?? t('meta.description');
+const alternates = Astro.props.alternates ?? { pt: pathFor('pt'), en: pathFor('en') };
+const site = Astro.site ?? new URL(Astro.url.origin);
+const canonical = new URL(alternates[lang], site).href;
+const ogImage = new URL(profile.ogImage, site).href;
+const other = otherLang(lang);
+const navItems = [
+  ['#projetos', t('nav.projects')],
+  ['#habilidades', t('nav.skills')],
+  ['#experiencia', t('nav.experience')],
+  ['#contato', t('nav.contact')],
+] as const;
+---
+
+<!doctype html>
+<html lang={htmlLang[lang]}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang="pt-BR" href={new URL(alternates.pt, site).href} />
+    <link rel="alternate" hreflang="en" href={new URL(alternates.en, site).href} />
+    <link rel="alternate" hreflang="x-default" href={new URL(alternates.pt, site).href} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#0d0c11" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f6f5f9" media="(prefers-color-scheme: light)" />
+
+    <!-- Apply the saved theme before first paint (no flash). Without a saved choice the OS decides. -->
+    <script is:inline>
+      try {
+        var saved = localStorage.getItem('theme');
+        if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
+      } catch (e) {}
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={profile.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content={ogLocale[lang]} />
+    <meta property="og:locale:alternate" content={ogLocale[other]} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Person',
+      name: profile.name,
+      givenName: profile.shortName,
+      jobTitle: t('hero.role'),
+      email: `mailto:${profile.email}`,
+      url: canonical,
+      image: new URL(profile.ogImage, site).href,
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: profile.address.locality,
+        addressRegion: profile.address.region,
+        addressCountry: profile.address.country,
+      },
+      knowsAbout: profile.knowsAbout,
+      knowsLanguage: ['pt-BR', 'en'],
+      sameAs: [profile.github, profile.linkedin],
+    })} />
+  </head>
+  <body>
+    <a class="skip-link" href="#conteudo">{t('nav.skip')}</a>
+    <header class="site-header">
+      <div class="site-header__inner">
+        <a class="brand" href={pathFor(lang)}><span class="brand__prompt">~/</span>{profile.handle}</a>
+
+        <nav class="site-nav" id="site-nav" aria-label={t('nav.primary')}>
+          {navItems.map(([href, label]) => <a href={href}>{label}</a>)}
+        </nav>
+
+        <div class="header-actions">
+          <div class="lang-toggle" role="group" aria-label={t('lang.group')}>
+            {(['pt', 'en'] as const).map((code) =>
+              code === lang ? (
+                <a href={alternates[code]} aria-current="true" lang={htmlLang[code]}>
+                  {code.toUpperCase()}<span class="visually-hidden"> – {t(code === 'pt' ? 'lang.pt' : 'lang.en')}</span>
+                </a>
+              ) : (
+                <a href={alternates[code]} hreflang={htmlLang[code]} lang={htmlLang[code]} data-lang-switch>
+                  {code.toUpperCase()}<span class="visually-hidden"> – {t(code === 'pt' ? 'lang.pt' : 'lang.en')}</span>
+                </a>
+              ),
+            )}
+          </div>
+          <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-pressed="false" aria-label={t('theme.light')} title={t('theme.title')}>
+            <svg class="theme-toggle__sun" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.9 4.9 1.4 1.4"></path><path d="m17.7 17.7 1.4 1.4"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m4.9 19.1 1.4-1.4"></path><path d="m17.7 6.3 1.4-1.4"></path></svg>
+            <svg class="theme-toggle__moon" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"></path></svg>
+          </button>
+          <button class="icon-btn menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label={t('nav.menu')}>
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16"></path><path d="M4 12h16"></path><path d="M4 17h16"></path></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="conteudo" tabindex="-1">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="container site-footer__inner">
+        <span>© {new Date().getFullYear()} {profile.name}</span>
+        <span>{t('footer.built')} · <a href={profile.siteRepo}>{t('footer.source')}</a></span>
+      </div>
+    </footer>
+
+    <script>
+      import { initChrome } from '../scripts/chrome';
+      initChrome();
+    </script>
+  </body>
+</html>

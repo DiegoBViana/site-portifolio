@@ -1,0 +1,270 @@
+# Projeto de exemplo com repositório público e API ao vivo (mode: live).
+# O nome do arquivo (api-pedidos) é o slug usado em #projeto/api-pedidos/testar
+order: 1
+featured: true
+title:
+  pt: API de pedidos e pagamentos
+  en: Orders & payments API
+summary:
+  pt: API REST para criar pedidos e confirmar pagamentos com idempotência, JWT e testes de integração.
+  en: REST API to create orders and confirm payments with idempotency, JWT and integration tests.
+stack: [ASP.NET Core, EF Core, PostgreSQL, xUnit, JWT, Clean Architecture]
+repo: https://github.com/exemplo/api-pedidos
+card:
+  thumbnail:
+    svg: api-pedidos.svg
+    alt:
+      pt: "Diagrama: o cliente envia o mesmo POST duas vezes com a mesma Idempotency-Key e a API grava um único pagamento no PostgreSQL"
+      en: "Diagram: the client sends the same POST twice with the same Idempotency-Key and the API stores a single payment in PostgreSQL"
+  problem:
+    pt: cliente reenvia a requisição e o pagamento é cobrado duas vezes. Idempotência por chave resolve isso na API.
+    en: the client retries the request and the payment is charged twice. Key-based idempotency fixes it in the API.
+  metric:
+    value: "[X]% de cobertura"
+    caption:
+      pt: testes de unidade e integração (xUnit)
+      en: unit and integration tests (xUnit)
+demo:
+  baseUrl: https://api-pedidos-demo.example.com
+  timeoutMs: 6000
+  mode: live
+  note:
+    pt: dados resetados a cada hora
+    en: data reset every hour
+
+overview:
+  problem:
+    pt: Em pagamentos, a rede falha e o cliente tenta de novo. Sem cuidado, a mesma compra vira duas cobranças. Esta API registra cada Idempotency-Key e devolve o resultado original quando a requisição se repete.
+    en: In payments the network fails and the client retries. Without care, one purchase becomes two charges. This API records every Idempotency-Key and returns the original result when the request is repeated.
+  architecture:
+    alt:
+      pt: "Clean Architecture: API chama Application, que usa Domain; Infrastructure implementa as interfaces e acessa o PostgreSQL."
+      en: "Clean Architecture: API calls Application, which uses Domain; Infrastructure implements the interfaces and talks to PostgreSQL."
+    columns:
+      - - name: API
+          variant: primary
+          description: { pt: "Minimal endpoints, JWT, ProblemDetails", en: "Minimal endpoints, JWT, ProblemDetails" }
+        - name: Application
+          description: { pt: "Casos de uso, validação, idempotência", en: "Use cases, validation, idempotency" }
+        - name: Domain
+          description: { pt: "Pedido, Pagamento e regras de negócio", en: "Order, Payment and business rules" }
+      - - name: Infrastructure
+          variant: dashed
+          description:
+            pt: "Implementa as interfaces da Application: EF Core, repositórios, tabela de chaves idempotentes com índice único."
+            en: "Implements the Application interfaces: EF Core, repositories, idempotency-key table with a unique index."
+        - name: PostgreSQL
+  metrics:
+    - label: { pt: p95 de POST /pagamentos, en: p95 of POST /payments }
+      value: "[X ms]"
+    - label: { pt: cobertura de testes, en: test coverage }
+      value: "[X]%"
+    - label: { pt: testes automatizados, en: automated tests }
+      value: "[N]"
+
+requests:
+  - id: token
+    name: { pt: Gerar token, en: Get token }
+    shortName: { pt: Token, en: Token }
+    hint: /auth/token
+    method: POST
+    path: /api/auth/token
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "usuario": "recrutador@demo",
+        "senha": "demo"
+      }
+    tip:
+      pt: O token já é aplicado nas próximas requisições. Você não precisa copiar nada.
+      en: The token is applied to the next requests automatically. Nothing to copy.
+    sample:
+      status: 200
+      latencyMs: 41
+      body:
+        accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.demo.assinatura"
+        tipo: Bearer
+        expiraEmSegundos: 3600
+  - id: criar-pedido
+    name: { pt: Criar pedido, en: Create order }
+    shortName: { pt: Pedido, en: Order }
+    hint: /pedidos
+    method: POST
+    path: /api/pedidos
+    headers:
+      Authorization: "Bearer {{token}}"
+      Content-Type: application/json
+    body: |
+      {
+        "clienteId": "cli_demo_01",
+        "itens": [
+          { "sku": "CAF-250", "quantidade": 2, "precoUnitario": 34.90 }
+        ]
+      }
+    tip:
+      pt: O total é calculado no domínio, não confiado ao cliente.
+      en: The total is computed in the domain, never trusted from the client.
+    sample:
+      status: 201
+      latencyMs: 87
+      body:
+        id: ped_8f2c41
+        status: aguardando_pagamento
+        total: 69.8
+        moeda: BRL
+        criadoEm: "2026-10-15T14:31:52Z"
+  - id: pagar
+    name: { pt: Pagar pedido, en: Pay order }
+    shortName: { pt: Pagar, en: Pay }
+    hint: "/pedidos/{id}/pagamentos"
+    method: POST
+    path: /api/pedidos/ped_8f2c41/pagamentos
+    headers:
+      Authorization: "Bearer {{token}}"
+      Content-Type: application/json
+      Idempotency-Key: 7f3c9a2e-4b1d-4e0a-9c55-2d8e1f6a0b17
+    body: |
+      {
+        "metodo": "pix",
+        "valor": 69.80
+      }
+    tip:
+      pt: "Agora escolha “Repetir pagamento”: mesma chave, nenhuma cobrança nova."
+      en: "Now pick “Repeat payment”: same key, no new charge."
+    sample:
+      status: 201
+      latencyMs: 112
+      body: &pagamento
+        id: pag_51b7e0
+        pedidoId: ped_8f2c41
+        status: aprovado
+        metodo: pix
+        valor: 69.8
+        moeda: BRL
+        idempotencyKey: 7f3c9a2e-4b1d-4e0a-9c55-2d8e1f6a0b17
+        criadoEm: "2026-10-15T14:32:08Z"
+  - id: repetir
+    name: { pt: Repetir pagamento, en: Repeat payment }
+    shortName: { pt: Repetir, en: Repeat }
+    hint: mesma Idempotency-Key
+    method: POST
+    path: /api/pedidos/ped_8f2c41/pagamentos
+    headers:
+      Authorization: "Bearer {{token}}"
+      Content-Type: application/json
+      Idempotency-Key: 7f3c9a2e-4b1d-4e0a-9c55-2d8e1f6a0b17
+    body: |
+      {
+        "metodo": "pix",
+        "valor": 69.80
+      }
+    tip:
+      pt: "Mesmo id de pagamento da primeira chamada: a API devolveu o resultado original em vez de cobrar de novo."
+      en: "Same payment id as the first call: the API returned the original result instead of charging again."
+    sample:
+      status: 200
+      latencyMs: 9
+      headers:
+        Idempotent-Replayed: "true"
+      body: *pagamento
+  - id: consultar
+    name: { pt: Consultar pedido, en: Get order }
+    shortName: { pt: Consultar, en: Get }
+    hint: "/pedidos/{id}"
+    method: GET
+    path: /api/pedidos/ped_8f2c41
+    headers:
+      Authorization: "Bearer {{token}}"
+    tip:
+      pt: Um único pagamento, mesmo após duas tentativas.
+      en: A single payment, even after two attempts.
+    sample:
+      status: 200
+      latencyMs: 23
+      body:
+        id: ped_8f2c41
+        status: pago
+        total: 69.8
+        pagamentos:
+          - { id: pag_51b7e0, status: aprovado }
+  - id: invalido
+    name: { pt: Pedido inválido, en: Invalid order }
+    shortName: { pt: Erro 400, en: Error 400 }
+    hint: "/pedidos → 400"
+    method: POST
+    path: /api/pedidos
+    headers:
+      Authorization: "Bearer {{token}}"
+      Content-Type: application/json
+    body: |
+      {
+        "clienteId": "cli_demo_01",
+        "itens": []
+      }
+    tip:
+      pt: Erros seguem o padrão ProblemDetails (RFC 9457).
+      en: Errors follow the ProblemDetails standard (RFC 9457).
+    sample:
+      status: 400
+      latencyMs: 12
+      body:
+        type: https://tools.ietf.org/html/rfc9110#section-15.5.1
+        title: Dados inválidos
+        status: 400
+        errors:
+          itens: ["O pedido precisa de pelo menos 1 item."]
+
+snippets:
+  - title: { pt: Endpoint idempotente, en: Idempotent endpoint }
+    file: src/Pedidos.Api/Pagamentos/CriarPagamentoEndpoint.cs
+    lang: csharp
+    code: |
+      app.MapPost("/api/pedidos/{id}/pagamentos", async (
+          Guid id,
+          [FromHeader(Name = "Idempotency-Key")] string chave,
+          CriarPagamento cmd,
+          IPagamentoService servico,
+          HttpContext httpContext,
+          CancellationToken ct) =>
+      {
+          // Mesma chave = mesmo resultado. Nunca cobra duas vezes.
+          var resultado = await servico.PagarAsync(id, chave, cmd, ct);
+
+          if (resultado.Repetido)
+          {
+              httpContext.Response.Headers["Idempotent-Replayed"] = "true";
+              return Results.Ok(resultado.Pagamento);
+          }
+
+          return Results.Created($"/api/pagamentos/{resultado.Pagamento.Id}", resultado.Pagamento);
+      })
+      .RequireAuthorization()
+      .AddEndpointFilter<ValidacaoFilter<CriarPagamento>>();
+  - title: { pt: Teste de integração (Testcontainers), en: Integration test (Testcontainers) }
+    file: tests/Pedidos.IntegrationTests/PagamentoIdempotenteTests.cs
+    lang: csharp
+    code: |
+      [Fact]
+      public async Task Mesma_chave_devolve_o_mesmo_pagamento()
+      {
+          var client = _factory.CriarClienteAutenticado();
+          client.DefaultRequestHeaders.Add("Idempotency-Key", "teste-123");
+
+          var primeira = await client.PostAsJsonAsync(UrlPagamento, PagamentoValido());
+          var segunda = await client.PostAsJsonAsync(UrlPagamento, PagamentoValido());
+
+          primeira.StatusCode.Should().Be(HttpStatusCode.Created);
+          segunda.StatusCode.Should().Be(HttpStatusCode.OK);
+          segunda.Headers.GetValues("Idempotent-Replayed").Should().Contain("true");
+      }
+
+media:
+  type: image
+  src: /projects/demo-placeholder.svg
+  alt:
+    pt: Espaço reservado para a gravação da demo da API de pedidos.
+    en: Placeholder for the orders API demo recording.
+  caption:
+    pt: "[Substituir por GIF/vídeo: criação de pedido e pagamento repetido]"
+    en: "[Replace with GIF/video: creating an order and repeating a payment]"

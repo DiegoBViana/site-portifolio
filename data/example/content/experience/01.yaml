@@ -1,0 +1,12 @@
+# Exemplo fictício. Um arquivo por experiência; "order" define a posição (1 = mais recente).
+order: 1
+company: Empresa Exemplo
+role: { pt: Desenvolvedora Backend .NET, en: Backend .NET Developer }
+period: { pt: "jan/2022 — atual", en: "Jan 2022 — present" }
+current: true
+location: { pt: Remoto, en: Remote }
+highlights:
+  - pt: Desenvolvo APIs de pagamentos em ASP.NET Core com PostgreSQL.
+    en: I build payment APIs in ASP.NET Core with PostgreSQL.
+  - pt: Reduzi o tempo de resposta do checkout com cache no Redis.
+    en: Cut checkout response time with Redis caching.

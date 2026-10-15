@@ -1,0 +1,168 @@
+order: 3
+featured: true
+title:
+  pt: Encurtador de URL de alto volume
+  en: High-volume URL shortener
+summary:
+  pt: Minimal APIs com cache Redis na frente do banco, geração de códigos sem colisão e testes de carga com k6.
+  en: Minimal APIs with a Redis cache in front of the database, collision-free code generation and k6 load tests.
+stack: [Minimal APIs, Redis, k6, Docker, PostgreSQL]
+# Exemplo de repositório privado: sem link, o painel mostra "Repositório privado".
+privateRepo: true
+card:
+  thumbnail:
+    svg: encurtador-url.svg
+    alt:
+      pt: "Diagrama: GET /abc12 consulta o Redis; no acerto responde 302 para o destino, na falta consulta o banco"
+      en: "Diagram: GET /abc12 checks Redis; on a hit it answers 302 to the target, on a miss it reads the database"
+  problem:
+    pt: redirecionar links sob carga alta com latência baixa e previsível, sem bater no banco a cada clique.
+    en: redirect links under heavy load with low, predictable latency, without hitting the database on every click.
+  metric:
+    value: "[X ms] p95"
+    caption:
+      pt: a [N] req/s em teste de carga com k6
+      en: at [N] req/s in a k6 load test
+demo:
+  baseUrl: https://encurtador-demo.example.com
+  timeoutMs: 5000
+  mode: recorded
+
+overview:
+  problem:
+    pt: Redirecionamentos precisam responder em poucos milissegundos mesmo com picos de tráfego, e o banco não pode ser consultado a cada clique.
+    en: Redirects must answer in a few milliseconds even under traffic spikes, and the database can't be hit on every click.
+  solution:
+    pt: Cache-aside no Redis com TTL, códigos Base62 a partir de um contador atômico (sem colisão), contagem de cliques assíncrona e cenários de carga em k6 versionados no repositório.
+    en: Cache-aside in Redis with TTL, Base62 codes from an atomic counter (no collisions), asynchronous click counting and k6 load scenarios versioned in the repo.
+  architecture:
+    alt:
+      pt: "A Minimal API lê do Redis e só consulta o PostgreSQL em cache miss; os cliques são contados em segundo plano."
+      en: "The Minimal API reads from Redis and only queries PostgreSQL on a cache miss; clicks are counted in the background."
+    columns:
+      - - name: Minimal API
+          variant: primary
+          description: { pt: "GET /{code} → 302, POST /api/links", en: "GET /{code} → 302, POST /api/links" }
+        - name: Redis
+          description: { pt: "Cache-aside, TTL 24 h", en: "Cache-aside, 24 h TTL" }
+        - name: PostgreSQL
+          description: { pt: "Links e cliques agregados (só em cache miss)", en: "Links and aggregated clicks (cache miss only)" }
+      - - name: Fila de cliques
+          variant: dashed
+          description:
+            pt: "Cliques enfileirados e gravados em lote, fora do caminho do redirecionamento."
+            en: "Clicks queued and written in batches, off the redirect path."
+        - name: k6
+          description: { pt: "Cenários de carga versionados no repositório", en: "Load scenarios versioned in the repo" }
+  metrics:
+    - label: { pt: Redirecionamento p95, en: Redirect p95 }
+      value: "[X ms p95]"
+    - label: { pt: Requisições por segundo (k6), en: Requests per second (k6) }
+      value: "[X req/s]"
+    - label: { pt: Taxa de acerto do cache, en: Cache hit ratio }
+      value: "[X %]"
+
+requests:
+  - id: encurtar
+    name: { pt: Encurtar URL, en: Shorten URL }
+    description:
+      pt: Gera um código curto para a URL enviada.
+      en: Generates a short code for the given URL.
+    method: POST
+    path: /api/links
+    headers:
+      Content-Type: application/json
+    body: |
+      { "url": "https://learn.microsoft.com/dotnet/core/whats-new/", "expiresInDays": 30 }
+    sample:
+      status: 201
+      latencyMs: 18
+      body:
+        code: "aZ3k9Q"
+        shortUrl: "https://encurtador-demo.example.com/aZ3k9Q"
+        targetUrl: "https://learn.microsoft.com/dotnet/core/whats-new/"
+        expiresAt: "2025-04-13T13:40:00Z"
+  - id: estatisticas
+    name: { pt: Estatísticas do link, en: Link stats }
+    description:
+      pt: Cliques agregados por dia e se a última leitura veio do cache.
+      en: Clicks aggregated per day and whether the last read came from cache.
+    method: GET
+    path: /api/links/aZ3k9Q/stats
+    headers:
+      Accept: application/json
+    sample:
+      status: 200
+      latencyMs: 6
+      body:
+        code: "aZ3k9Q"
+        totalClicks: 1284
+        servedFromCache: true
+        clicksByDay:
+          - { date: "2025-03-12", clicks: 402 }
+          - { date: "2025-03-13", clicks: 517 }
+          - { date: "2025-03-14", clicks: 365 }
+  - id: nao-encontrado
+    name: { pt: Código inexistente (404), en: Unknown code (404) }
+    description:
+      pt: Consulta um código que não existe.
+      en: Looks up a code that doesn't exist.
+    method: GET
+    path: /api/links/naoexiste/stats
+    sample:
+      status: 404
+      latencyMs: 4
+      body:
+        type: https://tools.ietf.org/html/rfc9110#section-15.5.5
+        title: Not Found
+        status: 404
+        detail: "Link 'naoexiste' not found."
+
+snippets:
+  - title: { pt: Redirecionamento com cache-aside, en: Redirect with cache-aside }
+    file: src/Shortener.Api/Program.cs
+    lang: csharp
+    code: |
+      app.MapGet("/{code}", async (string code, IDatabase redis, LinksDb db, IClickQueue clicks) =>
+      {
+          var target = await redis.StringGetAsync($"link:{code}");
+          if (target.IsNullOrEmpty)
+          {
+              var link = await db.Links.AsNoTracking().FirstOrDefaultAsync(l => l.Code == code);
+              if (link is null) return Results.NotFound();
+              target = link.TargetUrl;
+              await redis.StringSetAsync($"link:{code}", target, TimeSpan.FromHours(24));
+          }
+
+          clicks.Enqueue(code); // contabilizado em background, fora do caminho crítico
+          return Results.Redirect(target!, permanent: false);
+      });
+  - title: { pt: Cenário de carga (k6), en: Load scenario (k6) }
+    file: load/redirect.js
+    lang: javascript
+    code: |
+      import http from 'k6/http';
+      import { check } from 'k6';
+
+      export const options = {
+        scenarios: {
+          redirects: { executor: 'constant-arrival-rate', rate: 2000, timeUnit: '1s',
+                       duration: '2m', preAllocatedVUs: 200 },
+        },
+        thresholds: { http_req_duration: ['p(95)<20'], http_req_failed: ['rate<0.001'] },
+      };
+
+      export default function () {
+        const res = http.get(`${__ENV.BASE_URL}/aZ3k9Q`, { redirects: 0 });
+        check(res, { 'is 302': (r) => r.status === 302 });
+      }
+
+media:
+  type: image
+  src: /projects/demo-placeholder.svg
+  alt:
+    pt: Espaço reservado para a gravação do teste de carga.
+    en: Placeholder for the load test recording.
+  caption:
+    pt: "[Substituir por GIF/vídeo: execução do k6 e painel de latência]"
+    en: "[Replace with GIF/video: k6 run and latency dashboard]"

@@ -1,0 +1,183 @@
+order: 2
+featured: true
+# Exemplo de rascunho: com draft: true o projeto não aparece no site.
+draft: true
+title:
+  pt: Microsserviços orientados a eventos
+  en: Event-driven microservices
+summary:
+  pt: Pedidos, Estoque e Notificações conversando por eventos com RabbitMQ + MassTransit, Outbox transacional e rastreamento distribuído com OpenTelemetry.
+  en: Orders, Inventory and Notifications talking through events with RabbitMQ + MassTransit, a transactional Outbox and distributed tracing with OpenTelemetry.
+stack: [RabbitMQ, MassTransit, Outbox, OpenTelemetry, .NET Aspire, PostgreSQL]
+repo: https://github.com/exemplo/microsservicos-eventos
+card:
+  thumbnail:
+    svg: microsservicos-eventos.svg
+    alt:
+      pt: "Diagrama: o serviço de Pedidos grava o evento no Outbox, que publica no RabbitMQ; Estoque e Notificação consomem o evento"
+      en: "Diagram: the Orders service writes the event to the Outbox, which publishes it to RabbitMQ; Inventory and Notification consume it"
+  problem:
+    pt: pedido, estoque e notificação precisam ficar consistentes sem transação distribuída e sem perder mensagens.
+    en: order, inventory and notification must stay consistent without a distributed transaction and without losing messages.
+  metric:
+    value: "[N] msg/s"
+    caption:
+      pt: sem perda em teste de queda do broker
+      en: no loss when the broker is taken down
+demo:
+  baseUrl: https://eventos-demo.example.com
+  timeoutMs: 6000
+  mode: live
+  note:
+    pt: traces abertos no Jaeger da demo
+    en: traces visible in the demo's Jaeger
+
+overview:
+  problem:
+    pt: Quando o banco confirmava o pedido mas a publicação do evento falhava, o estoque ficava inconsistente — e ninguém conseguia seguir uma requisição entre serviços.
+    en: When the database committed an order but publishing the event failed, inventory became inconsistent — and nobody could follow a request across services.
+  solution:
+    pt: Outbox transacional do MassTransit (evento salvo na mesma transação do pedido), consumidores idempotentes, retry com backoff + fila de erro, e traces OpenTelemetry propagados pelo RabbitMQ.
+    en: MassTransit transactional Outbox (event saved in the same transaction as the order), idempotent consumers, retry with backoff + error queue, and OpenTelemetry traces propagated through RabbitMQ.
+  architecture:
+    alt:
+      pt: "O serviço de Pedidos grava o pedido e o evento na Outbox; o MassTransit publica no RabbitMQ; Estoque e Notificações consomem; todos enviam traces ao OpenTelemetry."
+      en: "The Orders service stores the order and the event in the Outbox; MassTransit publishes to RabbitMQ; Inventory and Notifications consume; all send traces to OpenTelemetry."
+    columns:
+      - - name: Pedidos.Api
+          variant: primary
+          description: { pt: "Grava pedido + evento na mesma transação (Outbox)", en: "Stores order + event in one transaction (Outbox)" }
+        - name: RabbitMQ
+          description: { pt: "MassTransit publica após o commit; retry + fila de erro", en: "MassTransit publishes after commit; retry + error queue" }
+        - name: Estoque · Notificações
+          description: { pt: "Consumidores idempotentes", en: "Idempotent consumers" }
+      - - name: OpenTelemetry
+          variant: dashed
+          description:
+            pt: "Traces propagados pelas mensagens; um pedido vira um único trace entre os três serviços."
+            en: "Traces propagated through messages; one order becomes a single trace across the three services."
+        - name: Jaeger · .NET Aspire
+  metrics:
+    - label: { pt: Vazão sustentada, en: Sustained throughput }
+      value: "[X msg/s]"
+    - label: { pt: Latência ponta a ponta p95, en: End-to-end p95 latency }
+      value: "[X ms p95]"
+    - label: { pt: Eventos perdidos em teste de falha, en: Events lost in failure test }
+      value: "[N]"
+
+requests:
+  - id: criar-pedido-evento
+    name: { pt: Criar pedido (publica evento), en: Create order (publishes event) }
+    description:
+      pt: Cria um pedido; a resposta traz o traceId para acompanhar o evento entre os serviços.
+      en: Creates an order; the response carries the traceId so you can follow the event across services.
+    method: POST
+    path: /orders
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "customerId": "demo-customer",
+        "items": [{ "sku": "TECLADO-MEC", "quantity": 1 }]
+      }
+    sample:
+      status: 202
+      latencyMs: 35
+      body:
+        orderId: "5d2c9a10-8e4f-4b7a-b3c1-9f0e1d2c3b4a"
+        status: Pending
+        traceId: "4bf92f3577b34da6a3ce929d0e0e4736"
+        outboxMessageId: "a8c3e1f0-2b4d-4c6e-8f0a-1b2c3d4e5f60"
+  - id: rastrear-pedido
+    name: { pt: Linha do tempo do pedido, en: Order timeline }
+    description:
+      pt: Mostra os eventos que o pedido gerou em cada serviço, na ordem em que foram consumidos.
+      en: Shows the events the order produced in each service, in the order they were consumed.
+    method: GET
+    path: /orders/5d2c9a10-8e4f-4b7a-b3c1-9f0e1d2c3b4a/timeline
+    headers:
+      Accept: application/json
+    sample:
+      status: 200
+      latencyMs: 28
+      body:
+        orderId: "5d2c9a10-8e4f-4b7a-b3c1-9f0e1d2c3b4a"
+        traceId: "4bf92f3577b34da6a3ce929d0e0e4736"
+        events:
+          - { at: "2025-03-14T13:30:00.120Z", service: orders, event: OrderSubmitted }
+          - { at: "2025-03-14T13:30:00.184Z", service: inventory, event: StockReserved }
+          - { at: "2025-03-14T13:30:00.231Z", service: notifications, event: CustomerNotified }
+          - { at: "2025-03-14T13:30:00.240Z", service: orders, event: OrderConfirmed }
+  - id: saude
+    name: { pt: Health check, en: Health check }
+    description:
+      pt: Estado de cada dependência (RabbitMQ, PostgreSQL) via ASP.NET Core Health Checks.
+      en: Status of each dependency (RabbitMQ, PostgreSQL) via ASP.NET Core Health Checks.
+    method: GET
+    path: /health
+    sample:
+      status: 200
+      latencyMs: 9
+      body:
+        status: Healthy
+        totalDuration: "00:00:00.0123456"
+        entries:
+          rabbitmq: { status: Healthy }
+          postgres: { status: Healthy }
+          outbox-dispatcher: { status: Healthy, data: { pending: 0 } }
+
+snippets:
+  - title: { pt: Outbox transacional com MassTransit, en: Transactional Outbox with MassTransit }
+    file: src/Orders.Service/Program.cs
+    lang: csharp
+    code: |
+      builder.Services.AddMassTransit(x =>
+      {
+          x.AddEntityFrameworkOutbox<OrdersDbContext>(o =>
+          {
+              o.UsePostgres();
+              o.UseBusOutbox();          // evento só sai depois do commit
+              o.QueryDelay = TimeSpan.FromSeconds(1);
+          });
+
+          x.AddConsumer<PaymentConfirmedConsumer>();
+
+          x.UsingRabbitMq((ctx, cfg) =>
+          {
+              cfg.Host(builder.Configuration.GetConnectionString("RabbitMq"));
+              cfg.UseMessageRetry(r => r.Exponential(5,
+                  TimeSpan.FromMilliseconds(200), TimeSpan.FromSeconds(10),
+                  TimeSpan.FromMilliseconds(200)));
+              cfg.ConfigureEndpoints(ctx);
+          });
+      });
+  - title: { pt: Consumidor idempotente, en: Idempotent consumer }
+    file: src/Inventory.Service/Consumers/OrderSubmittedConsumer.cs
+    lang: csharp
+    code: |
+      public sealed class OrderSubmittedConsumer(InventoryDbContext db) : IConsumer<OrderSubmitted>
+      {
+          public async Task Consume(ConsumeContext<OrderSubmitted> context)
+          {
+              var msg = context.Message;
+              if (await db.ProcessedMessages.AnyAsync(p => p.MessageId == context.MessageId))
+                  return; // já processado: entrega "at-least-once" sem efeito duplicado
+
+              foreach (var item in msg.Items)
+                  await db.Stock.ReserveAsync(item.Sku, item.Quantity);
+
+              db.ProcessedMessages.Add(new(context.MessageId!.Value));
+              await db.SaveChangesAsync();
+              await context.Publish(new StockReserved(msg.OrderId));
+          }
+      }
+
+media:
+  type: image
+  src: /projects/demo-placeholder.svg
+  alt:
+    pt: Espaço reservado para a gravação do trace no Jaeger.
+    en: Placeholder for the Jaeger trace recording.
+  caption:
+    pt: "[Substituir por GIF/vídeo: trace de um pedido atravessando os 3 serviços no Jaeger]"
+    en: "[Replace with GIF/video: an order's trace across the 3 services in Jaeger]"

@@ -1,0 +1,8 @@
+order: 2
+company: Consultoria Exemplo
+role: { pt: Desenvolvedora .NET, en: .NET Developer }
+period: { pt: "mar/2018 — dez/2021", en: "Mar 2018 — Dec 2021" }
+location: { pt: Recife, PE, en: "Recife, Brazil" }
+highlights:
+  - pt: Integrei sistemas de clientes por APIs REST e filas.
+    en: Integrated client systems through REST APIs and queues.

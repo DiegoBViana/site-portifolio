@@ -1,0 +1,4 @@
+order: 2
+title: { pt: APIs e backend, en: APIs and backend }
+icon: plug
+items: ["ASP.NET Core", "Minimal APIs", "EF Core", { pt: "Idempotência", en: "Idempotency" }]

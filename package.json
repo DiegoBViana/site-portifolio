@@ -1,0 +1,30 @@
+{
+  "name": "portfolio-dotnet",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Portfólio para desenvolvedor backend .NET (Astro, PT-BR/EN) com console de API nos projetos",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "deploy": "astro build && npx wrangler pages deploy dist",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:all": "npm test && npm run test:e2e"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
+    "astro": "^7.3.8",
+    "shiki": "^4.5.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.4"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

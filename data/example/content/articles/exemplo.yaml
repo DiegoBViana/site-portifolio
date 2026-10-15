@@ -1,0 +1,6 @@
+# Exemplo de artigo. Com draft: true ele não aparece. A seção "Artigos" some se não houver artigos publicados.
+draft: true
+title: { pt: "[Título do artigo]", en: "[Article title]" }
+summary: { pt: "[Resumo de uma linha]", en: "[One-line summary]" }
+url: https://example.com/artigo
+date: 2025-01-01
