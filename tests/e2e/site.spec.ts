@@ -230,6 +230,68 @@ test.describe('project panel', () => {
   });
 });
 
+test.describe('screens gallery', () => {
+  test('a project with screens gets a "Telas" tab with prev/next, thumbnails, arrow keys and zoom', async ({ page }) => {
+    await page.goto('/#projeto/encurtador-url/telas');
+    const v = view(page, 'encurtador-url');
+    await expect(activeTab(page)).toHaveText('Telas');
+    const gallery = v.locator('[data-gallery]');
+    const slides = gallery.locator('[data-slide]');
+    const counter = gallery.locator('[data-gallery-counter]');
+    await expect(slides).toHaveCount(2);
+    await expect(slides.nth(0)).toBeVisible();
+    await expect(slides.nth(0).locator('img')).toHaveAttribute('alt', /campo de URL/);
+    await expect(slides.nth(0).locator('figcaption')).toContainText('Meus links');
+    await expect(counter).toHaveText('tela 1 de 2');
+
+    await gallery.getByRole('button', { name: 'Próxima tela' }).click();
+    await expect(slides.nth(1)).toBeVisible();
+    await expect(slides.nth(0)).toBeHidden();
+    await expect(counter).toHaveText('tela 2 de 2');
+    await expect(gallery.locator('[data-thumb="1"]')).toHaveAttribute('aria-current', 'true');
+
+    await gallery.getByRole('button', { name: 'Próxima tela' }).click(); // wraps around
+    await expect(counter).toHaveText('tela 1 de 2');
+    await gallery.getByRole('button', { name: 'Tela anterior' }).click(); // wraps backwards
+    await expect(counter).toHaveText('tela 2 de 2');
+
+    await gallery.locator('[data-thumb="0"]').click();
+    await expect(slides.nth(0)).toBeVisible();
+    await expect(gallery.locator('[data-thumb="0"]')).toBeFocused();
+    await page.keyboard.press('ArrowRight');
+    await expect(counter).toHaveText('tela 2 de 2');
+    await page.keyboard.press('ArrowLeft');
+    await expect(counter).toHaveText('tela 1 de 2');
+
+    const zoom = slides.nth(0).getByRole('button', { name: 'Ampliar a tela' });
+    await zoom.click();
+    await expect(gallery).toHaveClass(/gallery--zoomed/);
+    await expect(slides.nth(0).getByRole('button', { name: 'Voltar ao tamanho normal' })).toHaveAttribute('aria-pressed', 'true');
+    await gallery.getByRole('button', { name: 'Próxima tela' }).click(); // changing screens resets the zoom
+    await expect(gallery).not.toHaveClass(/gallery--zoomed/);
+
+    // images are served as optimized WebP
+    await expect(slides.nth(0).locator('img')).toHaveAttribute('src', /\.webp/);
+  });
+
+  test('the tab is in keyboard order only for projects with screens', async ({ page }) => {
+    await page.goto('/#projeto/encurtador-url/testar');
+    await page.keyboard.press('ArrowRight');
+    await expect(activeTab(page)).toHaveText('Telas');
+    await page.keyboard.press('ArrowRight');
+    await expect(activeTab(page)).toHaveText('Código');
+
+    // api-pedidos has no screens: no tab, and a deep link to it falls back to the overview
+    await expect(view(page, 'api-pedidos').locator('[data-tab="screens"]')).toHaveCount(0);
+    await page.goto('/#projeto/api-pedidos/telas');
+    await expect(activeTab(page)).toHaveText('Visão geral');
+
+    await page.goto('/en/#project/encurtador-url/screens');
+    await expect(activeTab(page)).toHaveText('Screens');
+    await expect(view(page, 'encurtador-url').locator('[data-gallery-counter]')).toHaveText('screen 1 of 2');
+  });
+});
+
 test.describe('private repositories and drafts', () => {
   test('a private project shows no repository link, a note on the Código tab and a way to ask for the code', async ({ page }) => {
     await page.goto('/#projeto/encurtador-url/codigo');
@@ -522,6 +584,12 @@ test.describe('mobile 390px', () => {
       const overflow = await body.evaluate((el) => el.scrollWidth - el.clientWidth);
       expect(overflow, tab).toBeLessThanOrEqual(0);
     }
+    // the screens gallery fits too (its thumbnail strip scrolls inside itself)
+    await page.goto('/#projeto/encurtador-url/telas');
+    const shots = view(page, 'encurtador-url');
+    await expect(shots.locator('[data-gallery]')).toBeVisible();
+    const galleryOverflow = await shots.locator('.project-view__body').evaluate((el) => el.scrollWidth - el.clientWidth);
+    expect(galleryOverflow, 'screens').toBeLessThanOrEqual(0);
     expect(await noOverflow()).toBe(true);
   });
 });

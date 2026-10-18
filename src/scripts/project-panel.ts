@@ -42,6 +42,9 @@ export function initProjectPanel(): void {
 
   const viewFor = (slug: string) =>
     dialog.querySelector<HTMLElement>(`.project-view[data-project="${CSS.escape(slug)}"]`);
+  /** The tabs this project has (the "Telas" tab only exists for projects with screenshots). */
+  const tabsOf = (view: HTMLElement) =>
+    Array.from(view.querySelectorAll<HTMLButtonElement>('[role="tab"]')).map((b) => b.dataset.tab as TabId);
 
   let skipReturnFocus = false;
 
@@ -72,7 +75,7 @@ export function initProjectPanel(): void {
     dialog!.querySelectorAll<HTMLElement>('.project-view').forEach((v) => (v.hidden = v !== view));
     dialog!.setAttribute('aria-labelledby', `pv-title-${slug}`);
     currentSlug = slug;
-    selectTab(view, tab);
+    selectTab(view, tabsOf(view).includes(tab) ? tab : 'overview');
     if (!dialog!.open) {
       dialog!.showModal();
       document.body.classList.add('has-modal');
@@ -152,15 +155,17 @@ export function initProjectPanel(): void {
   dialog.addEventListener('keydown', (e) => {
     const tabBtn = (e.target as Element).closest<HTMLButtonElement>('[role="tab"]');
     if (!tabBtn) return;
-    const idx = TABS.indexOf(tabBtn.dataset.tab as TabId);
+    const view = tabBtn.closest<HTMLElement>('.project-view')!;
+    const tabs = tabsOf(view);
+    const idx = tabs.indexOf(tabBtn.dataset.tab as TabId);
     let next: number | null = null;
-    if (e.key === 'ArrowRight') next = (idx + 1) % TABS.length;
-    else if (e.key === 'ArrowLeft') next = (idx - 1 + TABS.length) % TABS.length;
+    if (e.key === 'ArrowRight') next = (idx + 1) % tabs.length;
+    else if (e.key === 'ArrowLeft') next = (idx - 1 + tabs.length) % tabs.length;
     else if (e.key === 'Home') next = 0;
-    else if (e.key === 'End') next = TABS.length - 1;
+    else if (e.key === 'End') next = tabs.length - 1;
     if (next === null) return;
     e.preventDefault();
-    selectTab(tabBtn.closest<HTMLElement>('.project-view')!, TABS[next], { focus: true, updateHash: true });
+    selectTab(view, tabs[next], { focus: true, updateHash: true });
   });
 
   // Cards: remember which one opened the panel; the hash change does the opening.
@@ -187,6 +192,50 @@ export function initProjectPanel(): void {
   if (parseProjectHash(location.hash)) syncFromHash();
 
   dialog.querySelectorAll<HTMLElement>('[data-console]').forEach((root) => initConsole(root, i18n, lang));
+  dialog.querySelectorAll<HTMLElement>('[data-gallery]').forEach(initGallery);
+}
+
+/**
+ * "Telas" tab: one screenshot at a time, with previous/next buttons, the arrow keys and a
+ * strip of thumbnails. Clicking the screenshot toggles its full size (the stage then scrolls).
+ */
+function initGallery(root: HTMLElement) {
+  const slides = Array.from(root.querySelectorAll<HTMLElement>('[data-slide]'));
+  const thumbs = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-thumb]'));
+  const counter = root.querySelector<HTMLElement>('[data-gallery-counter]')!;
+  const template = root.dataset.counter ?? '{n} / {total}';
+  let index = 0;
+
+  const setZoom = (zoomed: boolean) => {
+    root.classList.toggle('gallery--zoomed', zoomed);
+    for (const btn of root.querySelectorAll<HTMLButtonElement>('[data-zoom]')) {
+      btn.setAttribute('aria-pressed', String(zoomed));
+      btn.querySelector('[data-zoom-text]')!.textContent = (zoomed ? root.dataset.unzoomLabel : root.dataset.zoomLabel) ?? '';
+    }
+  };
+
+  const show = (i: number) => {
+    index = (i + slides.length) % slides.length;
+    slides.forEach((slide, n) => (slide.hidden = n !== index));
+    thumbs.forEach((thumb, n) => {
+      if (n === index) thumb.setAttribute('aria-current', 'true');
+      else thumb.removeAttribute('aria-current');
+    });
+    counter.textContent = template.replace('{n}', String(index + 1)).replace('{total}', String(slides.length));
+    setZoom(false);
+  };
+
+  root.querySelector('[data-gallery-prev]')?.addEventListener('click', () => show(index - 1));
+  root.querySelector('[data-gallery-next]')?.addEventListener('click', () => show(index + 1));
+  thumbs.forEach((thumb, n) => thumb.addEventListener('click', () => show(n)));
+  for (const btn of root.querySelectorAll<HTMLButtonElement>('[data-zoom]')) {
+    btn.addEventListener('click', () => setZoom(!root.classList.contains('gallery--zoomed')));
+  }
+  root.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    show(index + (e.key === 'ArrowRight' ? 1 : -1));
+  });
 }
 
 interface ConsoleRequestData extends ConsoleRequest {

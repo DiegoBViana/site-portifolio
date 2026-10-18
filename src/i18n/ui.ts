@@ -60,6 +60,7 @@ const pt = {
   'panel.tabs': 'Seções do projeto',
   'panel.tab.overview': 'Visão geral',
   'panel.tab.try': 'Testar a API',
+  'panel.tab.screens': 'Telas',
   'panel.tab.code': 'Código',
   'panel.tab.demo': 'Demo',
   'panel.problem': 'O problema',
@@ -72,6 +73,13 @@ const pt = {
   'panel.privateNote':
     'O código deste projeto é privado. Aqui ficam os contratos e as regras de arquitetura; o código eu mostro e explico numa entrevista.',
   'panel.privateCta': 'Pedir para ver o código',
+  'gallery.label': 'Telas do sistema',
+  'gallery.thumbs': 'Escolher a tela',
+  'gallery.prev': 'Tela anterior',
+  'gallery.next': 'Próxima tela',
+  'gallery.counter': 'tela {n} de {total}',
+  'gallery.zoom': 'Ampliar a tela',
+  'gallery.unzoom': 'Voltar ao tamanho normal',
 
   'console.requests': 'Requisições prontas',
   'console.live': 'API ao vivo',
@@ -217,6 +225,7 @@ const en: Record<BaseKey, string> = {
   'panel.tabs': 'Project sections',
   'panel.tab.overview': 'Overview',
   'panel.tab.try': 'Try the API',
+  'panel.tab.screens': 'Screens',
   'panel.tab.code': 'Code',
   'panel.tab.demo': 'Demo',
   'panel.problem': 'The problem',
@@ -229,6 +238,13 @@ const en: Record<BaseKey, string> = {
   'panel.privateNote':
     "The code for this project is private. Here you'll find the contracts and architecture rules; I'm happy to walk through the code in an interview.",
   'panel.privateCta': 'Ask to see the code',
+  'gallery.label': 'Screens of the app',
+  'gallery.thumbs': 'Choose a screen',
+  'gallery.prev': 'Previous screen',
+  'gallery.next': 'Next screen',
+  'gallery.counter': 'screen {n} of {total}',
+  'gallery.zoom': 'Enlarge the screen',
+  'gallery.unzoom': 'Back to normal size',
 
   'console.requests': 'Ready-made requests',
   'console.live': 'Live API',
