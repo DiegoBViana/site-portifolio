@@ -2,7 +2,7 @@
 
 Modelo de site pessoal para **desenvolvedor backend .NET**, em português (`/`) e inglês (`/en/`). O repositório traz só dados fictícios de exemplo; os dados reais de quem publica ficam fora do Git (veja [Seus dados](#seus-dados)).
 
-Cada projeto abre um painel na própria página, sem trocar de aba. O recrutador vê o problema, a arquitetura e os números, envia requisições num console de API (ao vivo quando a API está publicada, ou com respostas gravadas) e lê o código ou os contratos.
+Cada projeto abre um painel na própria página, sem trocar de aba. O recrutador vê o problema, a arquitetura e os números, envia requisições num console de API (ao vivo quando a API está publicada, ou com respostas gravadas), vê as telas dos projetos que têm front e lê o código ou os contratos.
 
 **Stack:** Astro 7 · TypeScript · CSS com design tokens (tema claro e escuro) · Vitest · Playwright · GitHub Actions · Cloudflare Pages.
 
@@ -86,6 +86,7 @@ Roteiro passo a passo (o que ler no projeto, regras, testes e entrega): [docs/no
    - `requests[]`: `name`, `shortName` (pílula no celular), `hint` (2ª linha da lista), `method`, `path`, `headers`, `body` (texto JSON, editável), `tip` (dica abaixo da resposta) e `sample` (`status`, `latencyMs`, `headers`, `body`), que é a resposta gravada mostrada quando a API não responde
    - Em `headers`, `{{token}}` é trocado automaticamente pelo `accessToken` devolvido por uma requisição anterior (ex.: "Gerar token")
    - `snippets[]`: `title`, `file`, `lang` (qualquer linguagem do Shiki), `code`
+   - `screens[]` (opcional, para projetos com front): `image` (PNG ao lado do YAML, ex.: `./screens/<slug>/01-tela.png`), `title`, `caption` e `alt` `{ pt, en }`. Com telas, o painel ganha a aba **Telas** (`#projeto/<slug>/telas`), uma galeria com miniaturas, setas do teclado e zoom; as imagens viram WebP responsivo no build
    - `media`: `type: video|image`, `src` (mp4/webm/gif em `data/<pasta>/public/`, que vai para a raiz do site), `alt`, `caption`
 3. `npm run dev` e confira. Use `draft: true` para esconder o projeto.
 
@@ -130,7 +131,7 @@ Depois, aponte `contactForm.endpoint` para `/api/contato` e ajuste `submitContac
 
 ## Deep links
 
-`/#projeto/api-pedidos/testar` abre o projeto direto na aba "Testar a API". Abas: `visao-geral`, `testar`, `codigo`, `demo` (em inglês `#project/<slug>/overview|try|code|demo`; os dois formatos funcionam nas duas línguas). O botão de idioma mantém o link.
+`/#projeto/api-pedidos/testar` abre o projeto direto na aba "Testar a API". Abas: `visao-geral`, `testar`, `telas` (só em projetos com `screens`), `codigo`, `demo` (em inglês `#project/<slug>/overview|try|screens|code|demo`; os dois formatos funcionam nas duas línguas). O botão de idioma mantém o link.
 
 ## Deploy no Cloudflare Pages (grátis)
 

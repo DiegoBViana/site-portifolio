@@ -40,7 +40,7 @@ const apiRequest = z.object({
 const projects = defineCollection({
   // One YAML file per project. The file name is the project slug used in URLs.
   loader: glob({ pattern: '**/*.{yaml,yml}', base: `./data/${dataName}/content/projects` }),
-  schema: z.object({
+  schema: ({ image }) => z.object({
     order: z.number().default(100),
     featured: z.boolean().default(true),
     draft: z.boolean().default(false),
@@ -127,6 +127,20 @@ const projects = defineCollection({
         caption: l10n.optional(),
       })
       .optional(),
+    /**
+     * Screenshots of the project's front-end, shown in the "Telas" tab (the tab only appears when
+     * there is at least one). `image` is relative to the YAML file, e.g. ./screens/<slug>/01-login.png.
+     */
+    screens: z
+      .array(
+        z.object({
+          image: image(),
+          title: l10n,
+          caption: l10n.optional(),
+          alt: l10n,
+        }),
+      )
+      .default([]),
   }),
 });
 

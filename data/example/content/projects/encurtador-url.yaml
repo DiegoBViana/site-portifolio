@@ -28,6 +28,26 @@ demo:
   timeoutMs: 5000
   mode: recorded
 
+# Telas do sistema (aba "Telas"): imagens ao lado do YAML, caminho relativo a ele.
+screens:
+  - image: ./screens/encurtador-url/encurtador-links.png
+    title:
+      pt: Meus links
+      en: My links
+    caption:
+      pt: Formulário para encurtar e a lista de códigos com o total de cliques.
+      en: Form to shorten a URL and the list of codes with their click totals.
+    alt:
+      pt: "Tela fictícia com um campo de URL, o botão Encurtar e uma tabela de códigos, destinos e cliques"
+      en: "Mock screen with a URL field, a Shorten button and a table of codes, targets and clicks"
+  - image: ./screens/encurtador-url/encurtador-estatisticas.png
+    title:
+      pt: Estatísticas do link
+      en: Link statistics
+    alt:
+      pt: "Tela fictícia com três indicadores (cliques, acertos no cache, p95) e um gráfico de barras"
+      en: "Mock screen with three indicators (clicks, cache hits, p95) and a bar chart"
+
 overview:
   problem:
     pt: Redirecionamentos precisam responder em poucos milissegundos mesmo com picos de tráfego, e o banco não pode ser consultado a cada clique.

@@ -6,6 +6,8 @@ describe('project deep links', () => {
     expect(parseProjectHash('#projeto/api-pedidos/testar')).toEqual({ slug: 'api-pedidos', tab: 'try' });
     expect(parseProjectHash('#project/api-pedidos/try')).toEqual({ slug: 'api-pedidos', tab: 'try' });
     expect(parseProjectHash('#projeto/api-pedidos/codigo')).toEqual({ slug: 'api-pedidos', tab: 'code' });
+    expect(parseProjectHash('#projeto/encurtador-url/telas')).toEqual({ slug: 'encurtador-url', tab: 'screens' });
+    expect(parseProjectHash('#project/encurtador-url/screens')).toEqual({ slug: 'encurtador-url', tab: 'screens' });
   });
   it('defaults to the overview tab', () => {
     expect(parseProjectHash('#projeto/encurtador-url')).toEqual({ slug: 'encurtador-url', tab: 'overview' });
@@ -21,5 +23,6 @@ describe('project deep links', () => {
   it('builds localized hashes', () => {
     expect(buildProjectHash({ slug: 'api-pedidos', tab: 'try' }, 'pt')).toBe('#projeto/api-pedidos/testar');
     expect(buildProjectHash({ slug: 'api-pedidos', tab: 'overview' }, 'en')).toBe('#project/api-pedidos/overview');
+    expect(buildProjectHash({ slug: 'encurtador-url', tab: 'screens' }, 'pt')).toBe('#projeto/encurtador-url/telas');
   });
 });

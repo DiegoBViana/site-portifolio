@@ -180,6 +180,9 @@ for (const theme of ['dark', 'light'] as const) {
         await page.goto('/#projeto/encurtador-url/testar');
         report['panel: recorded-mode notice'] = await audit(page, '#project-panel');
 
+        await page.goto('/#projeto/encurtador-url/telas');
+        report['panel: screens'] = await audit(page, '#project-panel');
+
         const lines = Object.entries(report).map(
           ([k, a]) => `${theme} ${width}px · ${k}: ${a.checked} checked, min ${a.min}:1 (${a.minAt}), ${a.failures.length} failing`,
         );

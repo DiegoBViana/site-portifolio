@@ -5,6 +5,7 @@
  */
 import type { CollectionEntry } from 'astro:content';
 import { Code } from 'astro:components';
+import { Image } from 'astro:assets';
 import type { CodeLanguage } from 'astro';
 import { useTranslations, l, type Lang } from '../i18n/ui';
 import { TABS, type TabId } from '../lib/project-hash';
@@ -21,6 +22,7 @@ const t = useTranslations(lang);
 const tabLabel: Record<TabId, string> = {
   overview: t('panel.tab.overview'),
   try: t('panel.tab.try'),
+  screens: t('panel.tab.screens'),
   code: t('panel.tab.code'),
   demo: t('panel.tab.demo'),
 };
@@ -57,6 +59,8 @@ const host = (url: string) => new URL(url).host;
         sample: r.sample,
       }));
       const first = d.requests[0];
+      // "Telas" only exists for projects with screenshots.
+      const tabs = TABS.filter((tab) => tab !== 'screens' || d.screens.length > 0);
       const recordedMode = d.demo.mode === 'recorded';
       return (
         <article class="project-view" data-project={slug} aria-labelledby={`pv-title-${slug}`} hidden>
@@ -93,7 +97,7 @@ const host = (url: string) => new URL(url).host;
             </div>
 
             <div class="tabs" role="tablist" aria-label={t('panel.tabs')} data-tablist>
-              {TABS.map((tab, i) => (
+              {tabs.map((tab, i) => (
                 <button
                   type="button"
                   role="tab"
@@ -254,6 +258,58 @@ const host = (url: string) => new URL(url).host;
                 </div>
               )}
             </section>
+
+            {/* ---- Telas ---- */}
+            {d.screens.length > 0 && (
+              <section class="tabpanel" role="tabpanel" id={ids('screens').panel} aria-labelledby={ids('screens').tab} tabindex="0" data-tabpanel="screens" hidden>
+                <div class="gallery" data-gallery role="group" aria-label={t('gallery.label')} data-counter={t('gallery.counter')} data-zoom-label={t('gallery.zoom')} data-unzoom-label={t('gallery.unzoom')}>
+                  <div class="gallery__stage">
+                    {d.screens.map((s, i) => (
+                      <figure class="gallery__slide" data-slide hidden={i !== 0}>
+                        <button type="button" class="gallery__zoom" data-zoom aria-pressed="false">
+                          <Image
+                            src={s.image}
+                            alt={l(s.alt, lang)}
+                            format="webp"
+                            widths={[720, 1080, s.image.width]}
+                            sizes="(max-width: 1000px) 100vw, 960px"
+                            loading="lazy"
+                            decoding="async"
+                            class="gallery__img"
+                          />
+                          <span class="visually-hidden" data-zoom-text>{t('gallery.zoom')}</span>
+                        </button>
+                        <figcaption class="gallery__caption">
+                          <strong>{l(s.title, lang)}</strong>
+                          {s.caption && <span>{l(s.caption, lang)}</span>}
+                        </figcaption>
+                      </figure>
+                    ))}
+                  </div>
+                  <div class="gallery__bar">
+                    <button class="icon-btn" type="button" data-gallery-prev aria-label={t('gallery.prev')}>
+                      <Icon name="chevron-left" />
+                    </button>
+                    <span class="gallery__counter" data-gallery-counter aria-live="polite">
+                      {t('gallery.counter').replace('{n}', '1').replace('{total}', String(d.screens.length))}
+                    </span>
+                    <button class="icon-btn" type="button" data-gallery-next aria-label={t('gallery.next')}>
+                      <Icon name="chevron-right" />
+                    </button>
+                  </div>
+                  <ul class="gallery__thumbs" aria-label={t('gallery.thumbs')}>
+                    {d.screens.map((s, i) => (
+                      <li>
+                        <button type="button" class="gallery__thumb" data-thumb={i} aria-current={i === 0 ? 'true' : undefined}>
+                          <Image src={s.image} alt="" format="webp" width={240} loading="lazy" decoding="async" />
+                          <span>{l(s.title, lang)}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </section>
+            )}
 
             {/* ---- Código ---- */}
             <section class="tabpanel" role="tabpanel" id={ids('code').panel} aria-labelledby={ids('code').tab} tabindex="0" data-tabpanel="code" hidden>

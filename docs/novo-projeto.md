@@ -49,6 +49,7 @@ Responda antes de escrever: qual problema resolve, para quem, qual é o fluxo pr
 | `overview.metrics` | 3 ou 4 números reais. |
 | `requests` | 4 a 7 requisições (passo 4). |
 | `snippets` | 2 ou 3 trechos curtos. Público: o código que mostra a decisão principal. Privado: contratos e regras. |
+| `screens` | Telas do sistema, se o projeto tiver front (passo 5). Sem telas, a aba Telas não aparece. |
 | `media` | GIF ou vídeo da demo em `data/personal/public/projects/<slug>/`. Sem gravação, deixe de fora (o painel mostra "Demo em vídeo em breve"). |
 
 ## 3. Diagrama do cartão (thumbnail)
@@ -75,18 +76,28 @@ Cada requisição conta um passo da história: o fluxo principal, depois um caso
 - Headers repetidos: use âncora YAML (`&tool-headers` / `*tool-headers`).
 - YAML: textos com vírgula dentro de `[ ]` ou `{ }` precisam de aspas.
 
-## 5. Ajustes no site
+## 5. Telas (projetos com front)
+
+Quando o projeto tem interface, mostre de 4 a 6 telas na aba **Telas**: uma galeria com anterior/próxima, miniaturas, setas do teclado e zoom.
+
+- Capture as telas rodando o projeto localmente com os dados de exemplo dele (ex.: Playwright em 1440×900, tema claro). Rode a partir de uma cópia: a pasta do projeto continua intocada.
+- Salve os PNGs em `data/personal/content/projects/screens/<slug>/`, numerados na ordem da história (`01-login.png`, `02-matriz.png`...). O build converte para WebP em vários tamanhos.
+- No YAML, cada item tem `image` (caminho relativo ao YAML: `./screens/<slug>/02-matriz.png`), `title`, `caption` (opcional) e `alt`, todos `{ pt, en }` menos `image`.
+- Comece pela tela que mostra o valor do sistema, não pelo login.
+- Confira nomes de pessoas reais nos dados de exemplo: troque por nomes fictícios antes de capturar.
+
+## 6. Ajustes no site
 
 - Mais de um projeto: a grade passa sozinha de um cartão largo para colunas. Nada a mudar no CSS.
 - Se o projeto novo passar a ser o primeiro (`order: 1`), o link do topo passa a abrir ele.
 
-## 6. Testes
+## 7. Testes
 
 1. `npm run build` com os seus dados: o build falha com mensagem clara se faltar campo obrigatório.
-2. `npm run dev` e confira nos dois temas e no celular (390 px): cartão, as 4 abas do painel e o diagrama.
+2. `npm run dev` e confira nos dois temas e no celular (390 px): cartão, as abas do painel e o diagrama.
 3. `npm test` e `npm run test:e2e`. Os testes e2e usam só `data/example/`, então só precisam mudar se o projeto exigir um recurso novo no site (um campo novo, um comportamento novo do painel). Nesse caso, adicione o recurso também a um projeto de exemplo e cubra com teste.
 
-## 7. Publicar
+## 8. Publicar
 
 1. `npm run deploy` (build com `data/personal/` e envio para o Cloudflare Pages).
 2. Faça backup de `data/personal/`: ela não está no Git.
@@ -99,6 +110,7 @@ Cada requisição conta um passo da história: o fluxo principal, depois um caso
 - [ ] Nenhum segredo, chave ou URL interna
 - [ ] `repo` real ou `privateRepo: true`
 - [ ] Diagrama só com classes `th-*` e markers com o slug
+- [ ] Telas (se houver) sem nomes ou dados de pessoas reais, com `alt` em PT e EN
 - [ ] Respostas do console coerentes entre si
 - [ ] Build, testes unitários e e2e passando
 - [ ] Nada pessoal fora de `data/personal/`

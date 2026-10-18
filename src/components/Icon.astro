@@ -1,7 +1,7 @@
 ---
 /** Inline stroke icons used by design A (decorative: always aria-hidden). */
 interface Props {
-  name: 'download' | 'code' | 'briefcase' | 'mail' | 'play' | 'send' | 'close' | 'lock';
+  name: 'download' | 'code' | 'briefcase' | 'mail' | 'play' | 'send' | 'close' | 'lock' | 'chevron-left' | 'chevron-right';
   size?: number;
   class?: string;
 }
@@ -15,6 +15,8 @@ const paths: Record<Props['name'], string> = {
   send: '<path d="m4 12 16-8-6 16-2-6z"/>',
   close: '<path d="M6 6l12 12"/><path d="M18 6 6 18"/>',
   lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  'chevron-left': '<path d="m15 6-6 6 6 6"/>',
+  'chevron-right': '<path d="m9 6 6 6-6 6"/>',
 };
 ---
 

@@ -4,12 +4,13 @@
  *   #project/<slug>/<tab>   (EN)   e.g. #project/api-pedidos/try
  * Both forms are accepted on both language versions, so links survive a language switch.
  */
-export const TABS = ['overview', 'try', 'code', 'demo'] as const;
+/** Every tab a project can have. "screens" only shows up for projects with `screens`. */
+export const TABS = ['overview', 'try', 'screens', 'code', 'demo'] as const;
 export type TabId = (typeof TABS)[number];
 
 const TAB_SLUGS: Record<'pt' | 'en', Record<TabId, string>> = {
-  pt: { overview: 'visao-geral', try: 'testar', code: 'codigo', demo: 'demo' },
-  en: { overview: 'overview', try: 'try', code: 'code', demo: 'demo' },
+  pt: { overview: 'visao-geral', try: 'testar', screens: 'telas', code: 'codigo', demo: 'demo' },
+  en: { overview: 'overview', try: 'try', screens: 'screens', code: 'code', demo: 'demo' },
 };
 
 const PREFIX = { pt: 'projeto', en: 'project' } as const;
